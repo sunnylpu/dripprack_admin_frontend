@@ -1,0 +1,41 @@
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { ProtectedRoute } from '../components/layout/ProtectedRoute.jsx';
+import { AdminLayout } from '../components/layout/AdminLayout.jsx';
+import { LoginView } from '../features/auth/LoginView.jsx';
+import { DashboardView } from '../features/dashboard/DashboardView.jsx';
+import { OrdersPlaceholder } from '../features/placeholders/OrdersPlaceholder.jsx';
+import { ProductsPlaceholder } from '../features/placeholders/ProductsPlaceholder.jsx';
+import { CategoriesPlaceholder } from '../features/placeholders/CategoriesPlaceholder.jsx';
+import { InventoryPlaceholder } from '../features/placeholders/InventoryPlaceholder.jsx';
+import { AuditLogsPlaceholder } from '../features/placeholders/AuditLogsPlaceholder.jsx';
+
+export function AppRouter() {
+  return (
+    <Routes>
+      {/* Standalone Authentication Gateway */}
+      <Route path="/login" element={<LoginView />} />
+
+      {/* Protected Tactical Admin Domain */}
+      <Route
+        element={
+          <ProtectedRoute>
+            <AdminLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="/dashboard" element={<DashboardView />} />
+        <Route path="/orders" element={<OrdersPlaceholder />} />
+        <Route path="/products" element={<ProductsPlaceholder />} />
+        <Route path="/categories" element={<CategoriesPlaceholder />} />
+        <Route path="/inventory" element={<InventoryPlaceholder />} />
+        <Route path="/audit-logs" element={<AuditLogsPlaceholder />} />
+      </Route>
+
+      {/* Redirects */}
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+    </Routes>
+  );
+}
+
