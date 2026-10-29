@@ -24,7 +24,7 @@ export function Topbar({ onToggleSidebar }) {
           <input
             type="text"
             disabled
-            placeholder="Global search (Planned for Phase 2)..."
+            placeholder="Global search (Planned for future phase)..."
             className="w-full h-9 pl-9 pr-12 rounded bg-surface-container-low border border-outline-variant/30 text-xs font-body text-outline/60 placeholder:text-outline/50 cursor-not-allowed select-none"
           />
           <div className="absolute right-2.5 flex items-center gap-0.5 pointer-events-none text-[10px] font-mono text-outline/60 bg-surface-container px-1.5 py-0.5 rounded border border-outline-variant/30">

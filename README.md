@@ -1,6 +1,6 @@
-# DripRack Admin Frontend — Tactical Control System (Phase 1)
+# DripRack Admin Frontend — Tactical Control System (Phases 1 & 2 Complete)
 
-Phase 1 implementation of the administrative control interface for the **DripRack** streetwear e-commerce platform.
+The administrative control interface for the **DripRack** streetwear e-commerce platform.
 
 ---
 
@@ -8,17 +8,33 @@ Phase 1 implementation of the administrative control interface for the **DripRac
 
 The DripRack Admin interface is architected separately from the customer client frontend. It provides verified operators with administrative tooling, order management, inventory operations, and security audit logs, built strictly according to `DESIGN.md` and the tactical design tokens.
 
-### Phase 1 Scope & Boundary
+### Phase 1 & 2 Implementations
 
-This phase strictly establishes:
-- **Project Foundation:** Modern React 18 single-page application bundled with Vite.
-- **Design System:** Tactical dark-zinc surfaces, electric-blue accents, emerald indicators, and Space Grotesk / Geist / JetBrains Mono typography.
-- **Secure Authentication Gateway (`/login`):** Pixel-faithful implementation of the reference authentication gateway with email/password validation, credential toggle, duplicate-submit suppression, and normalized error messaging.
-- **In-Memory Token Architecture:** Zero persistent storage (`localStorage` / `sessionStorage`) usage for access tokens or administrator credentials.
-- **Silent Session Restoration:** Cookie-based HttpOnly refresh token rotation across browser refreshes via `/api/v1/auth/refresh`.
-- **Strict Role & Status Verification:** Rejection and cookie invalidation for non-admin accounts or accounts with `status !== 'active'`.
-- **Shared Tactical Layout:** Reusable `AdminLayout`, `Sidebar`, and `Topbar` with active route indicators and operator identity.
-- **Honest Route Placeholders:** Clean, transparent placeholders for future phases (`/dashboard`, `/orders`, `/products`, `/categories`, `/inventory`, `/audit-logs`) with zero fabricated metrics or mock states.
+- **Phase 1: Foundation, Admin Authentication & Protected Layout**
+  - Modern React 18 single-page application bundled with Vite and Tailwind CSS.
+  - Tactical dark-zinc surfaces, electric-blue accents, emerald indicators, and Space Grotesk / Geist / JetBrains Mono typography.
+  - Authentication gateway (`/login`) with credential toggle, duplicate-submit suppression, and normalized error messaging.
+  - In-memory access token architecture with zero persistent browser storage (`localStorage` / `sessionStorage`).
+  - Silent session restoration via HttpOnly refresh cookie (`/api/v1/auth/refresh`) with a single-flight mutex.
+  - Strict RBAC & account active status verification (`user.role === 'admin' && user.status === 'active'`).
+  - Idempotency-aware 401 retry interceptor (only idempotent `GET`, `HEAD`, `OPTIONS` requests auto-replay).
+- **Phase 2: Executive Dashboard (`/dashboard`)**
+  - Direct integration with `GET /api/v1/admin/dashboard/summary`.
+  - 4 Executive KPI cards:
+    - **Recognized Revenue**: integer-cents conversion via `Intl.NumberFormat`, `revenue.currency`, and paid orders count.
+    - **Total Order Volume**: overall order counts across all lifecycles.
+    - **Action Required**: orders awaiting fulfillment action (`confirmed` + `processing`).
+    - **Critical Stock Alerts**: count of active SKUs where available stock is at or below threshold.
+  - **Order Pipeline Distribution**: composite ratio bar and breakdown for all 6 supported statuses (`awaiting_payment`, `confirmed`, `processing`, `shipped`, `delivered`, `cancelled`) with zero-division safety.
+  - **Recent Orders Stream**: bounded table of up to 10 latest orders with customer info, relative timestamps, payment state badges, fulfillment badges, and client-side filtering.
+  - **Tactical UI States**: skeleton loading, empty state, and manual pulse refresh with non-destructive error handling.
+
+---
+
+## Backend Data Semantics Caveat
+
+> **Important Caveat (Backend Order Revenue Aggregation):**
+> As verified in `backend/src/modules/admin/admin.service.js`, the backend aggregates `totalRevenueCents` by matching `paymentStatus: 'paid'` without explicitly excluding orders whose `orderStatus === 'cancelled'`. The frontend displays authoritative backend figures without fabricating client-side recalculations, and surfaces this note transparently in the dashboard interface.
 
 ---
 
@@ -52,8 +68,8 @@ This phase strictly establishes:
 
 ## Agreed Project Roadmap (Phases 1–7)
 
-- **Phase 1: Foundation, Admin Authentication & Protected Layout** *(Current — Code Complete)*
-- **Phase 2: Executive Dashboard** (`/dashboard` via `/api/v1/admin/dashboard/summary` & `/api/v1/admin/orders`)
+- **Phase 1: Foundation, Admin Authentication & Protected Layout** *(Complete)*
+- **Phase 2: Executive Dashboard** *(Complete)*
 - **Phase 3: Products & Categories** (`/products` & `/categories` via `/api/v1/admin/products`, `/api/v1/admin/categories`, `/api/v1/products`)
 - **Phase 4: Inventory & Stock Movements** (`/inventory` via `/api/v1/inventory/stock`, `/low-stock`, `/movements`, `/adjust`)
 - **Phase 5: Orders & Fulfillment** (`/orders` via `/api/v1/admin/orders`, `/:reference`, `/:reference/status`, `/:reference/cancel`)
@@ -90,7 +106,12 @@ admin_frontend/
 │   │   ├── auth/
 │   │   │   └── LoginView.jsx    # Authentication gateway
 │   │   ├── dashboard/
-│   │   │   └── DashboardView.jsx # Admin control center landing page
+│   │   │   ├── DashboardView.jsx # Live Executive Control Center
+│   │   │   └── components/
+│   │   │       ├── DashboardSkeleton.jsx
+│   │   │       ├── KpiRibbon.jsx
+│   │   │       ├── OrderPipelineDistribution.jsx
+│   │   │       └── RecentOrdersTable.jsx
 │   │   └── placeholders/
 │   │       ├── PhasePlaceholderView.jsx # Honest module placeholder
 │   │       ├── OrdersPlaceholder.jsx    # Phase 5
@@ -100,13 +121,16 @@ admin_frontend/
 │   │       └── AuditLogsPlaceholder.jsx # Phase 6
 │   ├── lib/
 │   │   ├── apiClient.js         # Fetch client with idempotency-safe interceptors
-│   │   └── errors.js            # Standardized ApiError envelope
+│   │   ├── errors.js            # Standardized ApiError envelope
+│   │   └── formatters.js        # Currency, numbers, and relative time helpers
 │   ├── styles/
 │   │   └── index.css            # Tailwind directives & theme scrollbars
 │   └── main.jsx                 # Vite entry point
 ├── tests/
 │   ├── auth.test.js             # Unit tests for in-memory token lifecycle
-│   └── errors.test.js           # Unit tests for error normalization
+│   ├── dashboard.test.js        # Unit tests for dashboard data transformation
+│   ├── errors.test.js           # Unit tests for error normalization
+│   └── formatters.test.js       # Unit tests for currency & date helpers
 ├── .env.example
 ├── .gitignore
 ├── index.html
@@ -142,7 +166,7 @@ VITE_API_BASE_URL=http://localhost:5000/api/v1
 # Install dependencies
 npm install
 
-# Run unit tests (Node.js native test runner, zero extra dependencies)
+# Run unit tests (Node.js native test runner, 16 passing tests)
 npm test
 
 # Start development server (http://localhost:5173)
@@ -154,33 +178,3 @@ npm run build
 # Preview production build locally
 npm run preview
 ```
-
----
-
-## Actual Backend Endpoints Mapped
-
-| Module | Method | Route | Description |
-| :--- | :--- | :--- | :--- |
-| **Auth** | `POST` | `/api/v1/auth/login` | Operator login |
-| | `POST` | `/api/v1/auth/refresh` | HttpOnly cookie refresh |
-| | `POST` | `/api/v1/auth/logout` | Clear refresh session |
-| | `GET` | `/api/v1/auth/me` | Fetch authenticated profile |
-| **Dashboard (Phase 2)** | `GET` | `/api/v1/admin/dashboard/summary` | Executive KPI aggregations |
-| **Products (Phase 3)** | `GET` | `/api/v1/admin/products` | Admin listing (all statuses) |
-| | `GET` | `/api/v1/admin/products/:id` | Admin product detail |
-| | `POST` | `/api/v1/products` | Create product (admin) |
-| | `PATCH` | `/api/v1/products/:id` | Update product catalog fields |
-| | `PATCH` | `/api/v1/products/:id/status` | Update status (draft/published/archived) |
-| **Categories (Phase 3)**| `GET` | `/api/v1/admin/categories` | Admin category listing |
-| | `POST` | `/api/v1/categories` | Create category (admin) |
-| | `PATCH` | `/api/v1/categories/:id` | Update category (admin) |
-| | `DELETE`| `/api/v1/categories/:id` | Soft deactivation (admin) |
-| **Inventory (Phase 4)** | `GET` | `/api/v1/inventory/stock` | Stock overview |
-| | `GET` | `/api/v1/inventory/low-stock` | Low-stock queries |
-| | `GET` | `/api/v1/inventory/movements` | Immutable movements log |
-| | `POST` | `/api/v1/inventory/adjust` | Atomic stock adjustments |
-| **Orders (Phase 5)** | `GET` | `/api/v1/admin/orders` | Admin orders list |
-| | `GET` | `/api/v1/admin/orders/:reference` | Order detail by reference |
-| | `PATCH` | `/api/v1/admin/orders/:reference/status` | State transition & tracking |
-| | `POST` | `/api/v1/admin/orders/:reference/cancel` | Admin cancellation & stock return |
-| **Audit (Phase 6)** | `GET` | `/api/v1/admin/audit-logs` | Admin audit log stream |
