@@ -6,20 +6,19 @@ export function InventoryPlaceholder() {
     <PhasePlaceholderView
       title="Inventory & Stock Movements"
       phase="Phase 4"
-      description="Stock level auditing, manual restock adjustments, reserved inventory inspection, and low-stock alerts."
+      description="Stock level auditing, atomic stock adjustments, low-stock threshold queries, and immutable movement history."
       plannedCapabilities={[
-        'SKU-level stock tracking with physical warehouse location mapping.',
-        'Reserved stock vs available stock reconciliation for active checkouts.',
-        'Manual stock adjustments with mandatory audit reason logging (restock, damage, loss).',
-        'Low stock threshold notifications and automated reorder triggers.'
+        'SKU-level stock overview displaying physical, reserved, and available stock per product.',
+        'Low-stock query identifying products where available stock is at or below threshold.',
+        'Atomic stock adjustment with reason notes (restock, physical_audit, damage, loss, return_restock).',
+        'Immutable audit log of stock movements with quantity deltas, timestamps, and actor references.'
       ]}
       backendEndpoints={[
-        { method: 'GET', route: '/api/v1/inventory' },
-        { method: 'POST', route: '/api/v1/inventory/adjust' },
+        { method: 'GET', route: '/api/v1/inventory/stock' },
+        { method: 'GET', route: '/api/v1/inventory/low-stock' },
         { method: 'GET', route: '/api/v1/inventory/movements' },
-        { method: 'GET', route: '/api/v1/inventory/low-stock' }
+        { method: 'POST', route: '/api/v1/inventory/adjust' }
       ]}
     />
   );
 }
-

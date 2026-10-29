@@ -18,27 +18,27 @@ export function Topbar({ onToggleSidebar }) {
           <Menu className="w-5 h-5" />
         </button>
 
-        {/* Global Search Bar (Visual Tactical Trigger) */}
+        {/* Global Search Bar (Planned for future phase) */}
         <div className="relative hidden sm:flex items-center w-64 md:w-80">
-          <Search className="w-4 h-4 text-outline absolute left-3 pointer-events-none" />
+          <Search className="w-4 h-4 text-outline/60 absolute left-3 pointer-events-none" />
           <input
             type="text"
-            readOnly
-            placeholder="Search orders, products, SKUs..."
-            className="w-full h-9 pl-9 pr-12 rounded bg-surface-container-low border border-outline-variant/30 text-xs font-body text-on-surface placeholder:text-outline/70 focus:outline-none cursor-default select-none"
+            disabled
+            placeholder="Global search (Planned for Phase 2)..."
+            className="w-full h-9 pl-9 pr-12 rounded bg-surface-container-low border border-outline-variant/30 text-xs font-body text-outline/60 placeholder:text-outline/50 cursor-not-allowed select-none"
           />
-          <div className="absolute right-2.5 flex items-center gap-0.5 pointer-events-none text-[10px] font-mono text-outline bg-surface-container px-1.5 py-0.5 rounded border border-outline-variant/40">
-            <span>⌘K</span>
+          <div className="absolute right-2.5 flex items-center gap-0.5 pointer-events-none text-[10px] font-mono text-outline/60 bg-surface-container px-1.5 py-0.5 rounded border border-outline-variant/30">
+            <span>PLANNED</span>
           </div>
         </div>
       </div>
 
       <div className="flex items-center gap-3 sm:gap-4">
-        {/* Cloud Sync Status Badge */}
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-secondary-container/30 border border-secondary/30 text-secondary text-xs font-mono">
-          <Cloud className="w-3.5 h-3.5 animate-pulse" />
-          <span className="hidden xs:inline uppercase tracking-wider text-[11px] font-semibold">
-            SYNCED
+        {/* Connection Status Badge (Honest Standby Indicator) */}
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-surface-container border border-outline-variant/30 text-outline text-xs font-mono">
+          <Cloud className="w-3.5 h-3.5 text-outline" />
+          <span className="hidden xs:inline uppercase tracking-wider text-[11px]">
+            STANDBY
           </span>
         </div>
 

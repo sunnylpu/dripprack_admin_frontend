@@ -70,19 +70,16 @@ export function Sidebar({ isOpen, onClose }) {
           <div className="p-4 border-b border-outline-variant/20 bg-surface-container-low/40 select-none">
             <div className="flex items-center justify-between">
               <span className="font-mono text-[11px] uppercase tracking-wider text-outline">
-                ENV NODE
+                ENVIRONMENT
               </span>
-              <span className="font-mono text-[11px] text-secondary bg-surface-container px-1.5 py-0.5 rounded border border-secondary/30">
-                PROD-US-EAST
+              <span className="font-mono text-[11px] text-outline bg-surface-container px-1.5 py-0.5 rounded border border-outline-variant/30">
+                ADMIN CONSOLE
               </span>
             </div>
             <div className="flex items-center gap-2 mt-2">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-secondary"></span>
-              </span>
-              <span className="font-mono text-xs text-on-surface-variant">
-                API 99.98% ONLINE
+              <span className="inline-block h-2 w-2 rounded-full bg-outline-variant"></span>
+              <span className="font-mono text-xs text-outline">
+                API STATUS UNCHECKED
               </span>
             </div>
           </div>

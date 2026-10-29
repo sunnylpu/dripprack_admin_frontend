@@ -74,15 +74,21 @@ export function LoginView() {
       const destination = location.state?.from?.pathname || '/dashboard';
       navigate(destination, { replace: true });
     } catch (err) {
-      // Safe, generic failure messages that never leak account existence
+      // Safe, normalized failure messages that never leak account existence or server internals
       if (err.status === 401 || err.code === 'INVALID_CREDENTIALS') {
         setErrorMessage('Authentication failed: Invalid operator email or session password.');
       } else if (err.status === 403 || err.code === 'FORBIDDEN_ROLE') {
         setErrorMessage('Access Denied: This account lacks verified administrator permissions.');
+      } else if (err.status === 403 || err.code === 'ACCOUNT_INACTIVE') {
+        setErrorMessage('Access Denied: This administrator account is not active.');
       } else if (err.status === 429) {
-        setErrorMessage('Rate limit exceeded: Too many attempts. Please pause and retry shortly.');
+        setErrorMessage('Rate limit reached: Too many attempts. Please pause and retry shortly.');
+      } else if (err.status >= 500) {
+        setErrorMessage('Service unavailable: Administrative server error. Please try again later.');
+      } else if (!err.status || err.name === 'TypeError') {
+        setErrorMessage('Network connection error: Unable to reach administrative API.');
       } else {
-        setErrorMessage(err.message || 'Authentication failed. Please verify credentials or connection.');
+        setErrorMessage('Authentication failed. Please verify credentials or server connection.');
       }
     } finally {
       setIsSubmitting(false);
@@ -212,22 +218,22 @@ export function LoginView() {
             icon={Lock}
             className="w-full mt-2 font-headline uppercase tracking-wider shadow-lg"
           >
-            {isSubmitting ? 'VERIFYING CRYPTO TOKEN...' : 'Sign In to Admin Portal'}
+            {isSubmitting ? 'Signing In...' : 'Sign In to Admin Portal'}
           </Button>
         </form>
 
-        {/* Security Telemetry Footer */}
+        {/* Technical Reference Footer */}
         <div className="mt-6 pt-4 border-t border-outline-variant/20 flex flex-col gap-2 font-mono text-xs">
-          <div className="flex items-center justify-between text-on-surface-variant">
+          <div className="flex items-center justify-between text-outline text-[11px]">
             <span className="flex items-center gap-1.5">
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-secondary"></span>
-              TLS 1.3 / HTTP/2 SECURED
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-outline-variant"></span>
+              STORAGE: IN-MEMORY (NO LOCALSTORAGE)
             </span>
-            <span className="text-outline-variant uppercase">PROD-US-EAST</span>
+            <span className="uppercase">ADMIN GATEWAY</span>
           </div>
-          <div className="flex items-center justify-between text-on-surface-variant/80 text-[11px]">
-            <span>STRICT REFRESH COOKIE ACTIVE</span>
-            <span className="text-primary font-semibold">LATENCY 12ms</span>
+          <div className="flex items-center justify-between text-outline/80 text-[11px]">
+            <span>COOKIE SCOPE: /api/v1/auth</span>
+            <span>TARGET: REST API V1</span>
           </div>
         </div>
       </div>

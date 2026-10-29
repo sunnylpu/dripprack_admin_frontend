@@ -5,20 +5,16 @@ export function AuditLogsPlaceholder() {
   return (
     <PhasePlaceholderView
       title="Security & System Audit Trail"
-      phase="Phase 5"
-      description="Immutable event logging of administrator actions, privilege escalations, authentication attempts, and data mutations."
+      phase="Phase 6"
+      description="Append-only administrative audit trail tracking operations, status transitions, actor identity, and client IP addresses."
       plannedCapabilities={[
-        'Full chronological audit event stream with IP address, user agent, and timestamp metadata.',
-        'Filtering by action type (AUTH_LOGIN, PRODUCT_UPDATE, ORDER_STATUS_CHANGE, STOCK_ADJUST).',
-        'Entity diff inspection showing pre-change and post-change JSON states.',
-        'Exportable audit summaries for compliance and forensic analysis.'
+        'Chronological audit event stream across administrative actions with pagination and date filters.',
+        'Action filtering (e.g., ORDER_STATUS_UPDATE, ORDER_CANCELLED, PRODUCT_CREATED).',
+        'Actor identification, client IP address, timestamp, and entity reference tracking.'
       ]}
       backendEndpoints={[
-        { method: 'GET', route: '/api/v1/audit-logs' },
-        { method: 'GET', route: '/api/v1/audit-logs/:id' },
-        { method: 'GET', route: '/api/v1/audit-logs/export' }
+        { method: 'GET', route: '/api/v1/admin/audit-logs' }
       ]}
     />
   );
 }
-

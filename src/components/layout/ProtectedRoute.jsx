@@ -14,8 +14,8 @@ export function ProtectedRoute({ children }) {
     return <LoadingState message="VERIFYING OPERATOR PRIVILEGES..." />;
   }
 
-  // Enforce authentication & verified admin role
-  if (!isAuthenticated || user?.role !== 'admin') {
+  // Enforce authentication, verified admin role, and active status
+  if (!isAuthenticated || user?.role !== 'admin' || user?.status !== 'active') {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

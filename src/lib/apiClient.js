@@ -1,7 +1,11 @@
 import { ApiError } from './errors.js';
 
-// Read API base URL from Vite environment or fall back to default backend port 5000
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1').replace(/\/+$/, '');
+// Read API base URL from Vite environment, process.env, or fall back to default backend port 5000
+const rawBaseUrl =
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL) ||
+  (typeof process !== 'undefined' && process.env?.VITE_API_BASE_URL) ||
+  'http://localhost:5000/api/v1';
+const API_BASE_URL = rawBaseUrl.replace(/\/+$/, '');
 
 // Short-lived access token kept strictly in application memory
 let inMemoryAccessToken = null;
@@ -72,24 +76,50 @@ export async function request(endpoint, options = {}) {
     throw ApiError.networkError(err);
   }
 
-  // Handle 401 Unauthorized for protected routes (except login and refresh endpoints)
+  // Handle 401 Unauthorized for protected routes (except auth endpoints)
   const isAuthEndpoint = endpoint.includes('/auth/login') || endpoint.includes('/auth/refresh') || endpoint.includes('/auth/logout');
   if (response.status === 401 && !isAuthEndpoint && !options._isRetry) {
-    try {
-      // Trigger single-flight silent refresh using HttpOnly cookie
-      const newAccessToken = await refreshAccessToken();
+    const method = (options.method || 'GET').toUpperCase();
+    const isIdempotent = ['GET', 'HEAD', 'OPTIONS'].includes(method);
 
-      // Retry original request with the fresh token
-      headers.set('Authorization', `Bearer ${newAccessToken}`);
-      return await request(endpoint, {
-        ...options,
-        headers,
-        _isRetry: true
-      });
-    } catch (refreshErr) {
-      clearAccessToken();
-      notifyAuthChange(null);
-      throw refreshErr;
+    if (isIdempotent) {
+      try {
+        // Trigger single-flight silent refresh using HttpOnly cookie
+        const newAccessToken = await refreshAccessToken();
+
+        // Retry original idempotent read request with the fresh token
+        headers.set('Authorization', `Bearer ${newAccessToken}`);
+        return await request(endpoint, {
+          ...options,
+          headers,
+          _isRetry: true
+        });
+      } catch (refreshErr) {
+        clearAccessToken();
+        notifyAuthChange(null);
+        throw refreshErr;
+      }
+    } else {
+      // Non-idempotent mutation (POST, PATCH, DELETE, PUT):
+      // Attempt silent refresh to restore token for next requests,
+      // but never automatically replay mutations to prevent duplicate side effects.
+      try {
+        await refreshAccessToken();
+      } catch {
+        clearAccessToken();
+        notifyAuthChange(null);
+      }
+
+      let errorData;
+      const contentType = response.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        try {
+          errorData = await response.json();
+        } catch {
+          errorData = null;
+        }
+      }
+      throw ApiError.fromResponse(errorData, response.status);
     }
   }
 
@@ -138,11 +168,15 @@ async function refreshAccessToken() {
       }
 
       if (!res.ok) {
+        clearAccessToken();
+        notifyAuthChange(null);
         throw ApiError.fromResponse(json, res.status);
       }
 
       const newAccessToken = json?.data?.accessToken;
       if (!newAccessToken) {
+        clearAccessToken();
+        notifyAuthChange(null);
         throw new ApiError('No access token received during session refresh', { code: 'TOKEN_REFRESH_FAILED' });
       }
 
@@ -194,6 +228,8 @@ export const apiClient = {
     async logout() {
       try {
         await request('/auth/logout', { method: 'POST' });
+      } catch {
+        // Suppress network/server errors so local state is unconditionally purged
       } finally {
         clearAccessToken();
         notifyAuthChange(null);
