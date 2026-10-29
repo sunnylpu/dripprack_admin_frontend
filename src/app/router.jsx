@@ -4,9 +4,9 @@ import { ProtectedRoute } from '../components/layout/ProtectedRoute.jsx';
 import { AdminLayout } from '../components/layout/AdminLayout.jsx';
 import { LoginView } from '../features/auth/LoginView.jsx';
 import { DashboardView } from '../features/dashboard/DashboardView.jsx';
+import { ProductsView } from '../features/products/ProductsView.jsx';
+import { CategoriesView } from '../features/categories/CategoriesView.jsx';
 import { OrdersPlaceholder } from '../features/placeholders/OrdersPlaceholder.jsx';
-import { ProductsPlaceholder } from '../features/placeholders/ProductsPlaceholder.jsx';
-import { CategoriesPlaceholder } from '../features/placeholders/CategoriesPlaceholder.jsx';
 import { InventoryPlaceholder } from '../features/placeholders/InventoryPlaceholder.jsx';
 import { AuditLogsPlaceholder } from '../features/placeholders/AuditLogsPlaceholder.jsx';
 
@@ -25,9 +25,9 @@ export function AppRouter() {
         }
       >
         <Route path="/dashboard" element={<DashboardView />} />
+        <Route path="/products" element={<ProductsView />} />
+        <Route path="/categories" element={<CategoriesView />} />
         <Route path="/orders" element={<OrdersPlaceholder />} />
-        <Route path="/products" element={<ProductsPlaceholder />} />
-        <Route path="/categories" element={<CategoriesPlaceholder />} />
         <Route path="/inventory" element={<InventoryPlaceholder />} />
         <Route path="/audit-logs" element={<AuditLogsPlaceholder />} />
       </Route>

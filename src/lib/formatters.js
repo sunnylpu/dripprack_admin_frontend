@@ -2,6 +2,54 @@
  * Currency, date, and math formatting helpers for DripRack administrative UI
  */
 
+export const DEFAULT_CURRENCY_CODE =
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_CURRENCY_CODE) ||
+  (typeof process !== 'undefined' && process.env?.VITE_CURRENCY_CODE) ||
+  'USD';
+
+/**
+ * Safely parses human-entered decimal monetary strings (e.g. "149.99", "65", "0.50")
+ * into non-negative integer minor units (cents) without floating point imprecision.
+ *
+ * @param {string|number} input
+ * @returns {number} Integer cents
+ * @throws {Error} if input is malformed, negative, or has more than 2 decimal places
+ */
+export function parseCurrencyToCents(input) {
+  if (input === null || input === undefined || input === '') {
+    throw new Error('Price input is required');
+  }
+
+  const str = String(input).trim();
+  // Validates non-negative decimal currency with at most 2 decimal places: e.g. "0", "12", "12.3", "12.34"
+  if (!/^\d+(\.\d{1,2})?$/.test(str)) {
+    throw new Error('Invalid price format. Expected a non-negative number with at most 2 decimal places (e.g. 19.99)');
+  }
+
+  const [wholePart, decimalPart = ''] = str.split('.');
+  const paddedDecimal = decimalPart.padEnd(2, '0');
+  const cents = parseInt(wholePart, 10) * 100 + parseInt(paddedDecimal, 10);
+
+  if (cents > Number.MAX_SAFE_INTEGER || cents < 0) {
+    throw new Error('Price value is out of allowable range');
+  }
+
+  return cents;
+}
+
+/**
+ * Converts integer minor units (cents) to decimal string for prefilling input forms (e.g. 14999 -> "149.99").
+ *
+ * @param {number|null} cents
+ * @returns {string} Decimal string or empty string
+ */
+export function formatCentsToDecimalInput(cents) {
+  if (typeof cents !== 'number' || Number.isNaN(cents) || cents < 0) {
+    return '';
+  }
+  return (cents / 100).toFixed(2);
+}
+
 /**
  * Formats integer cents into a localized major currency string.
  * Converts integer minor units to major currency units exactly once.

@@ -105,14 +105,14 @@ export function RecentOrdersTable({ recentOrders = [], defaultCurrency = 'USD' }
         <div>
           <div className="flex items-center gap-2">
             <span className="font-mono text-xs uppercase tracking-wider text-outline font-semibold">
-              REAL-TIME INGESTION
+              LATEST ORDERS SNAPSHOT
             </span>
             <span className="px-2 py-0.5 rounded bg-primary-container/20 border border-primary-container/40 text-primary font-mono text-[11px] font-semibold">
               LATEST {recentOrders.length} ORDERS
             </span>
           </div>
           <h2 className="font-headline text-lg font-bold text-on-surface mt-0.5">
-            Recent Orders Stream
+            Recent Orders Snapshot
           </h2>
         </div>
 

@@ -157,8 +157,8 @@ export function OrderPipelineDistribution({ ordersByStatus = {}, totalOrdersCoun
             <span className="font-mono text-xs uppercase tracking-wider text-outline font-semibold">
               RUNBOOK SHORTCUTS
             </span>
-            <span className="font-mono text-[11px] text-primary bg-surface-container px-2 py-0.5 rounded border border-outline-variant/30">
-              DISPATCH READY
+            <span className="font-mono text-[11px] text-outline bg-surface-container px-2 py-0.5 rounded border border-outline-variant/30">
+              PLANNED (PHASE 5)
             </span>
           </div>
 
@@ -213,9 +213,9 @@ export function OrderPipelineDistribution({ ordersByStatus = {}, totalOrdersCoun
         <div className="mt-5 p-3 rounded bg-surface-container-lowest border border-outline-variant/20 flex items-center justify-between text-xs font-mono">
           <div className="flex items-center gap-2 text-outline">
             <Terminal className="w-4 h-4 text-primary" />
-            <span>DISPATCH SUBSYSTEM</span>
+            <span>FULFILLMENT OPERATIONS</span>
           </div>
-          <span className="text-[11px] text-secondary font-bold uppercase">READY</span>
+          <span className="text-[11px] text-outline font-semibold uppercase">PLANNED FOR PHASE 5</span>
         </div>
       </div>
     </section>

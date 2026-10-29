@@ -45,6 +45,29 @@ function notifyAuthChange(user) {
 }
 
 /**
+ * Normalizes standard backend ApiResponse envelopes:
+ * - Unpacks payload.data
+ * - Preserves top-level payload.meta alongside data object for paginated lists
+ */
+export function normalizeApiResponse(payload) {
+  if (payload && typeof payload === 'object' && payload.data !== undefined) {
+    if (
+      payload.meta !== undefined &&
+      typeof payload.data === 'object' &&
+      payload.data !== null &&
+      !Array.isArray(payload.data)
+    ) {
+      return {
+        ...payload.data,
+        meta: payload.meta
+      };
+    }
+    return payload.data;
+  }
+  return payload;
+}
+
+/**
  * Core HTTP request runner with envelope unwrapping and transparent silent token rotation
  */
 export async function request(endpoint, options = {}) {
@@ -138,8 +161,8 @@ export async function request(endpoint, options = {}) {
     throw ApiError.fromResponse(data, response.status);
   }
 
-  // Unpack standard backend response envelope: { success: true, data: { ... } }
-  return data?.data !== undefined ? data.data : data;
+  // Unpack standard backend response envelope while preserving top-level meta for paginated datasets
+  return normalizeApiResponse(data);
 }
 
 /**
