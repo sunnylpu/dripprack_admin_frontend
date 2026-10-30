@@ -344,7 +344,7 @@ export function InventoryView() {
             Inventory &amp; Movements
           </h1>
           <p className="font-body text-sm text-on-surface-variant">
-            Real-time ledger of shelf units, locked drop carts, and immutable operational adjustments.
+            Manually refreshed server ledger of warehouse shelf units, cart reservations, and operational adjustments.
           </p>
         </div>
 

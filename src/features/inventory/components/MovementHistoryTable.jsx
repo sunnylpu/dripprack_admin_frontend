@@ -102,7 +102,7 @@ export function MovementHistoryTable({
               </span>
             </div>
             <p className="text-xs text-on-surface-variant font-mono">
-              Cryptographically timestamped transaction log. Records cannot be edited, deleted, or backdated.
+              Append-only server transaction log. Historical records cannot be edited, deleted, or backdated.
             </p>
           </div>
         </div>

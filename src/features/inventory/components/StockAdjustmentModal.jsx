@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   validateStockAdjustment,
   generateIdempotencyKey
@@ -40,6 +40,9 @@ export function StockAdjustmentModal({
   const [validationError, setValidationError] = useState('');
   const [apiError, setApiError] = useState(null);
 
+  // Tracks the serialized payload of the last submission attempt
+  const lastAttemptRef = useRef(null);
+
   // Active product record
   const currentProduct = useMemo(() => {
     if (product) return product;
@@ -55,6 +58,7 @@ export function StockAdjustmentModal({
       setValidationError('');
       setApiError(null);
       setIdempotencyKey(generateIdempotencyKey());
+      lastAttemptRef.current = null;
 
       if (product) {
         setSelectedProductId(product._id);
@@ -78,19 +82,44 @@ export function StockAdjustmentModal({
 
   const isDeductionExcessive = mode === 'sub' && parsedMagnitude > available;
 
-  const handleModeChange = (newMode) => {
-    setMode(newMode);
+  // Helper to ensure changed payloads get a new idempotency key after an attempted submission
+  const markPayloadChanged = () => {
+    if (lastAttemptRef.current !== null) {
+      setIdempotencyKey(generateIdempotencyKey());
+      lastAttemptRef.current = null;
+    }
     setValidationError('');
     setApiError(null);
   };
 
+  const handleModeChange = (newMode) => {
+    setMode(newMode);
+    markPayloadChanged();
+  };
+
+  const handleDeltaChange = (val) => {
+    setDeltaInput(val);
+    markPayloadChanged();
+  };
+
+  const handleProductChange = (prodId) => {
+    setSelectedProductId(prodId);
+    markPayloadChanged();
+  };
+
+  const handleReasonChange = (val) => {
+    setReason(val);
+    markPayloadChanged();
+  };
+
   const handleRegenerateKey = () => {
     setIdempotencyKey(generateIdempotencyKey());
+    lastAttemptRef.current = null;
   };
 
   const handleQuickReason = (tag) => {
     setReason(tag);
-    setValidationError('');
+    markPayloadChanged();
   };
 
   const handleFormSubmit = async (e) => {
@@ -115,6 +144,9 @@ export function StockAdjustmentModal({
       setValidationError(firstError);
       return;
     }
+
+    // Record the serialized payload for identical retry detection
+    lastAttemptRef.current = JSON.stringify(parsedPayload);
 
     try {
       await onSubmit(parsedPayload, idempotencyKey);
@@ -194,11 +226,14 @@ export function StockAdjustmentModal({
         ) : (
           <div className="space-y-1.5">
             <label className="font-mono text-xs uppercase text-on-surface-variant font-medium">
-              Target Product &amp; SKU
+              Target Product &amp; SKU (from current page - {availableProducts.length} items)
             </label>
+            <p className="text-[11px] text-outline font-mono">
+              Displaying products from the active page view. To adjust an item on another page, navigate to that page or click &quot;Adjust Stock&quot; on its row.
+            </p>
             <select
               value={selectedProductId}
-              onChange={(e) => setSelectedProductId(e.target.value)}
+              onChange={(e) => handleProductChange(e.target.value)}
               className="w-full bg-surface-container font-mono text-xs text-on-surface p-2.5 rounded-lg border border-outline-variant/30 focus:outline-none focus:border-primary cursor-pointer"
             >
               {availableProducts.map((p) => (
@@ -296,7 +331,7 @@ export function StockAdjustmentModal({
                 max="100000"
                 step="1"
                 value={deltaInput}
-                onChange={(e) => setDeltaInput(e.target.value)}
+                onChange={(e) => handleDeltaChange(e.target.value)}
                 placeholder="Enter units (e.g. 25)"
                 className="bg-transparent font-mono text-lg font-bold text-on-surface w-full focus:outline-none"
               />
@@ -346,7 +381,7 @@ export function StockAdjustmentModal({
             <textarea
               rows={2}
               value={reason}
-              onChange={(e) => setReason(e.target.value)}
+              onChange={(e) => handleReasonChange(e.target.value)}
               placeholder="e.g. Supplier batch restock received from manufacturer"
               className="w-full bg-surface-container font-mono text-xs text-on-surface p-2.5 rounded-lg border border-outline-variant/30 focus:outline-none focus:border-primary placeholder:text-outline-variant"
             />

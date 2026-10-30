@@ -201,9 +201,9 @@ export function StockOverviewTable({
                   const physical = item.stock?.physical ?? 0;
                   const reserved = item.stock?.reserved ?? 0;
                   const available = item.stock?.available ?? 0;
-                  const threshold = item.lowStockThreshold ?? 10;
-                  const isLow = item.isLowStock || available <= threshold;
-                  const capacityRatio = threshold > 0 ? Math.min(Math.round((available / threshold) * 100), 100) : 100;
+                  const threshold = item.lowStockThreshold;
+                  const isLow = item.isLowStock || (typeof threshold === 'number' && available <= threshold);
+                  const capacityRatio = typeof threshold === 'number' && threshold > 0 ? Math.min(Math.round((available / threshold) * 100), 100) : 100;
 
                   return (
                     <tr
@@ -257,7 +257,7 @@ export function StockOverviewTable({
                           {formatNumber(available)}
                         </span>
                         <span className="block text-[10px] text-outline uppercase">
-                          MIN: {formatNumber(threshold)}
+                          MIN: {typeof threshold === 'number' ? formatNumber(threshold) : '—'}
                         </span>
                       </td>
 
@@ -266,7 +266,7 @@ export function StockOverviewTable({
                         <div className="space-y-1">
                           <div className="flex justify-between font-mono text-[10px] text-outline">
                             <span>{isLow ? `${capacityRatio}% depleted` : 'Optimal'}</span>
-                            <span>{available} / {threshold}</span>
+                            <span>{available} / {typeof threshold === 'number' ? threshold : '—'}</span>
                           </div>
                           <div className="w-full bg-surface-container h-1.5 rounded-full overflow-hidden">
                             <div

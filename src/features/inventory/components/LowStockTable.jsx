@@ -178,8 +178,8 @@ export function LowStockTable({
                   const physical = item.stock?.physical ?? 0;
                   const reserved = item.stock?.reserved ?? 0;
                   const available = item.stock?.available ?? 0;
-                  const threshold = item.lowStockThreshold ?? 10;
-                  const unitsBelow = item.unitsBelowThreshold ?? Math.max(0, threshold - available);
+                  const threshold = item.lowStockThreshold;
+                  const unitsBelow = item.unitsBelowThreshold ?? (typeof threshold === 'number' ? Math.max(0, threshold - available) : 0);
 
                   return (
                     <tr
@@ -230,7 +230,7 @@ export function LowStockTable({
 
                       {/* Safety Threshold */}
                       <td className="py-3 px-4 text-right font-mono text-sm text-outline">
-                        {formatNumber(threshold)}
+                        {typeof threshold === 'number' ? formatNumber(threshold) : '—'}
                       </td>
 
                       {/* Deficit Below Threshold */}

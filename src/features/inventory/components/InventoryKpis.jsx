@@ -38,18 +38,18 @@ export function InventoryKpis({
           <Package className="w-10 h-10 stroke-[1.2]" />
         </div>
         <div className="font-mono text-xs uppercase text-on-surface-variant font-medium tracking-wide">
-          Total Physical Units
+          Page Physical Units
         </div>
         <div className="flex items-baseline gap-2">
           <span className="font-mono text-2xl font-bold text-on-surface">
             {formatNumber(physicalUnits)}
           </span>
-          <span className="font-mono text-xs text-outline">Shelved</span>
+          <span className="font-mono text-xs text-outline">On Page</span>
         </div>
         <div className="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
           <div className="bg-primary h-full rounded-full" style={{ width: '100%' }}></div>
         </div>
-        <div className="text-xs text-outline">Shelved across catalog items</div>
+        <div className="text-xs text-outline">Summed across current page rows</div>
       </div>
 
       {/* KPI 2: Reserved Units */}
@@ -58,7 +58,7 @@ export function InventoryKpis({
           <Lock className="w-10 h-10 stroke-[1.2]" />
         </div>
         <div className="font-mono text-xs uppercase text-on-surface-variant font-medium tracking-wide">
-          Reserved Units (Drop Hold)
+          Page Reserved Units
         </div>
         <div className="flex items-baseline gap-2">
           <span className="font-mono text-2xl font-bold text-tertiary">
@@ -74,7 +74,7 @@ export function InventoryKpis({
             style={{ width: `${Math.min(reservedRatio, 100)}%` }}
           ></div>
         </div>
-        <div className="text-xs text-outline">Active carts &amp; checkout locks</div>
+        <div className="text-xs text-outline">Current page in-flight holds</div>
       </div>
 
       {/* KPI 3: Net Available Units */}
@@ -83,7 +83,7 @@ export function InventoryKpis({
           <CheckCircle2 className="w-10 h-10 stroke-[1.2]" />
         </div>
         <div className="font-mono text-xs uppercase text-on-surface-variant font-medium tracking-wide">
-          Net Available Units
+          Page Available Units
         </div>
         <div className="flex items-baseline gap-2">
           <span className="font-mono text-2xl font-bold text-secondary">
@@ -99,7 +99,7 @@ export function InventoryKpis({
             style={{ width: `${Math.min(availableRatio, 100)}%` }}
           ></div>
         </div>
-        <div className="text-xs text-outline">Ready to ship to storefront buyers</div>
+        <div className="text-xs text-outline">Current page ready-to-sell stock</div>
       </div>
 
       {/* KPI 4: Low Stock Alert SKUs */}
@@ -114,7 +114,7 @@ export function InventoryKpis({
               <span className="relative inline-flex rounded-full h-2 w-2 bg-error"></span>
             </span>
           )}
-          Low Stock Threshold SKUs
+          Catalog Low Stock SKUs
         </div>
         <div className="flex items-baseline gap-2">
           <span className="font-mono text-2xl font-bold text-error">
@@ -139,7 +139,7 @@ export function InventoryKpis({
           ></div>
         </div>
         <div className="text-xs text-outline">
-          {lowStockCount > 0 ? 'Exhaustion risk in catalog' : 'All SKUs above threshold'}
+          {lowStockCount > 0 ? 'Catalog SKUs at or below threshold' : 'All SKUs above threshold'}
         </div>
       </div>
     </div>
