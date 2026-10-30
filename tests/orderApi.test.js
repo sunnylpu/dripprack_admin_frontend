@@ -225,3 +225,4 @@ test('formatCurrency formats minor units accurately using the order currency', (
   assert.equal(formatCurrency(0, 'USD'), '$0.00');
   assert.equal(formatCurrency(null, 'USD'), '—');
 });
+
