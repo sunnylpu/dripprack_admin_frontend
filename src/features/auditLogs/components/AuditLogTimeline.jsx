@@ -52,8 +52,17 @@ export function AuditLogTimeline({
 
               {/* Event Card */}
               <div
+                role="button"
+                tabIndex={0}
                 onClick={() => onInspectLog(log)}
-                className="bg-surface-container-low p-4 rounded-xl border border-outline-variant/20 hover:border-primary/50 transition-all cursor-pointer space-y-2 shadow-sm"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onInspectLog(log);
+                  }
+                }}
+                aria-label={`Inspect audit record: ${log.action} on ${log.resourceType} ${log.resourceId}`}
+                className="bg-surface-container-low p-4 rounded-xl border border-outline-variant/20 hover:border-primary/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all cursor-pointer space-y-2 shadow-sm"
               >
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <div className="flex items-center gap-2 flex-wrap">

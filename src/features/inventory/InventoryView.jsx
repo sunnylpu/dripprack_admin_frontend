@@ -419,7 +419,7 @@ export function InventoryView() {
           <AlertTriangle className="w-4 h-4 text-error" />
           <span>Critical Low Stock</span>
           {lowStockTotalCount > 0 && (
-            <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-error text-on-error font-bold animate-pulse">
+            <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-error text-on-error font-bold">
               {lowStockTotalCount}
             </span>
           )}

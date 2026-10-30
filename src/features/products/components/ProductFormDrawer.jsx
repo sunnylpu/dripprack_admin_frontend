@@ -164,9 +164,32 @@ export function ProductFormDrawer({ isOpen, onClose, productToEdit, onSave }) {
     }
   };
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && !isSubmitting) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose, isSubmitting]);
+
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden bg-background/80 backdrop-blur-sm flex justify-end">
-      <div className="w-full max-w-2xl bg-surface-container-lowest border-l border-outline-variant/30 h-full flex flex-col shadow-2xl animate-in slide-in-from-right duration-200">
+    <div
+      className="fixed inset-0 z-50 overflow-hidden bg-background/80 backdrop-blur-sm flex justify-end"
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !isSubmitting) {
+          onClose();
+        }
+      }}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="product-drawer-title"
+        className="w-full max-w-2xl bg-surface-container-lowest border-l border-outline-variant/30 h-full flex flex-col shadow-2xl animate-in slide-in-from-right duration-200"
+      >
         {/* Drawer Header */}
         <div className="h-16 px-6 bg-surface-container-low border-b border-outline-variant/30 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
@@ -174,7 +197,7 @@ export function ProductFormDrawer({ isOpen, onClose, productToEdit, onSave }) {
               <Layers className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-headline font-bold text-base text-on-surface">
+              <h3 id="product-drawer-title" className="font-headline font-bold text-base text-on-surface">
                 {isEditing ? 'Edit Product Catalog' : 'Create New Product'}
               </h3>
               <p className="font-mono text-[11px] text-outline">

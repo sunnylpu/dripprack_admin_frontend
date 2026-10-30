@@ -32,6 +32,17 @@ export function CategoryFormModal({ isOpen, onClose, categoryToEdit, onSave }) {
     setServerError('');
   }, [categoryToEdit, isOpen]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && !isSubmitting) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose, isSubmitting]);
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e) => {
@@ -63,7 +74,12 @@ export function CategoryFormModal({ isOpen, onClose, categoryToEdit, onSave }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
-      <div className="w-full max-w-lg bg-surface-container-lowest border border-outline-variant/40 rounded-xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="category-modal-title"
+        className="w-full max-w-lg bg-surface-container-lowest border border-outline-variant/40 rounded-xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150"
+      >
         {/* Header */}
         <div className="px-6 py-4 bg-surface-container-low border-b border-outline-variant/30 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -71,7 +87,7 @@ export function CategoryFormModal({ isOpen, onClose, categoryToEdit, onSave }) {
               <FolderTree className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-headline font-bold text-base text-on-surface">
+              <h3 id="category-modal-title" className="font-headline font-bold text-base text-on-surface">
                 {isEditing ? 'Edit Category Taxonomy' : 'Create New Category'}
               </h3>
               <p className="font-mono text-[11px] text-outline">

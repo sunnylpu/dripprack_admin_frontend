@@ -90,9 +90,9 @@ export function KpiRibbon({ summary }) {
             ACTION REQUIRED
           </span>
           {actionRequiredCount > 0 ? (
-            <span className="relative flex items-center">
-              <span className="animate-ping absolute inline-flex h-2.5 w-2.5 rounded-full bg-tertiary opacity-75" />
-              <span className="inline-flex rounded-full h-2.5 w-2.5 bg-tertiary" />
+            <span className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-tertiary-container/30 border border-tertiary/30 font-mono text-[11px] text-tertiary font-semibold">
+              <span className="inline-flex rounded-full h-2 w-2 bg-tertiary" />
+              <span>ACTIVE</span>
             </span>
           ) : (
             <span className="font-mono text-[11px] text-secondary bg-surface-container px-1.5 py-0.5 rounded">

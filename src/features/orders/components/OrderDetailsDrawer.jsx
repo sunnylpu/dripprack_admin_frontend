@@ -30,6 +30,17 @@ export function OrderDetailsDrawer({
   onAdvanceStatus,
   onCancelOrder
 }) {
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const order = orderDetail?.order;
@@ -38,24 +49,37 @@ export function OrderDetailsDrawer({
 
   if (isLoading || !order) {
     return (
-      <aside className="fixed inset-y-0 right-0 w-full max-w-2xl bg-surface-container-low shadow-2xl z-50 flex flex-col border-l border-outline-variant/30">
-        <div className="p-6 bg-surface-container-lowest flex items-center justify-between border-b border-outline-variant/30">
-          <span className="font-mono text-sm text-outline">Loading Order Dossier...</span>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-1 rounded text-outline hover:text-on-surface hover:bg-surface-container transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-        <div className="flex-1 flex items-center justify-center p-8">
-          <div className="flex flex-col items-center gap-3 font-mono text-xs text-outline">
-            <RefreshCw className="w-6 h-6 animate-spin text-primary" />
-            <span>Fetching order and payment details...</span>
+      <>
+        <div
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 transition-opacity"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+        <aside
+          role="dialog"
+          aria-modal="true"
+          aria-label="Loading Order Dossier"
+          className="fixed inset-y-0 right-0 w-full max-w-2xl bg-surface-container-low shadow-2xl z-50 flex flex-col border-l border-outline-variant/30"
+        >
+          <div className="p-6 bg-surface-container-lowest flex items-center justify-between border-b border-outline-variant/30">
+            <span className="font-mono text-sm text-outline">Loading Order Dossier...</span>
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1 rounded text-outline hover:text-on-surface hover:bg-surface-container transition-colors"
+              aria-label="Close drawer"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
-        </div>
-      </aside>
+          <div className="flex-1 flex items-center justify-center p-8">
+            <div className="flex flex-col items-center gap-3 font-mono text-xs text-outline">
+              <RefreshCw className="w-6 h-6 animate-spin text-primary" />
+              <span>Fetching order and payment details...</span>
+            </div>
+          </div>
+        </aside>
+      </>
     );
   }
 
@@ -88,32 +112,44 @@ export function OrderDetailsDrawer({
     : { allowed: false };
 
   return (
-    <aside className="fixed inset-y-0 right-0 w-full max-w-2xl bg-surface-container-low shadow-2xl z-50 flex flex-col border-l border-outline-variant/30">
-      {/* Header of Drawer */}
-      <div className="p-6 bg-surface-container-lowest flex items-center justify-between border-b border-outline-variant/30">
-        <div className="flex flex-col">
-          <div className="flex items-center gap-2.5">
-            <span className="font-mono text-lg font-bold text-primary">
-              {order.orderReference}
-            </span>
-            <span className="font-mono text-xs px-2.5 py-0.5 rounded uppercase font-bold bg-primary-container text-on-primary-container">
-              {order.orderStatus}
+    <>
+      <div
+        className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 transition-opacity"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+      <aside
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="order-drawer-title"
+        className="fixed inset-y-0 right-0 w-full max-w-2xl bg-surface-container-low shadow-2xl z-50 flex flex-col border-l border-outline-variant/30"
+      >
+        {/* Header of Drawer */}
+        <div className="p-6 bg-surface-container-lowest flex items-center justify-between border-b border-outline-variant/30">
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2.5">
+              <h2 id="order-drawer-title" className="font-mono text-lg font-bold text-primary">
+                {order.orderReference}
+              </h2>
+              <span className="font-mono text-xs px-2.5 py-0.5 rounded uppercase font-bold bg-primary-container text-on-primary-container">
+                {order.orderStatus}
+              </span>
+            </div>
+            <span className="font-mono text-[11px] text-outline mt-1">
+              Created: {formatDateTime(order.createdAt)} ({formatRelativeTime(order.createdAt)})
             </span>
           </div>
-          <span className="font-mono text-[11px] text-outline mt-1">
-            Created: {formatDateTime(order.createdAt)} ({formatRelativeTime(order.createdAt)})
-          </span>
-        </div>
 
-        <button
-          type="button"
-          onClick={onClose}
-          className="p-1 rounded text-outline hover:text-on-surface hover:bg-surface-container transition-colors"
-          title="Close Drawer"
-        >
-          <X className="w-5 h-5" />
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1 rounded text-outline hover:text-on-surface hover:bg-surface-container transition-colors"
+            title="Close Drawer"
+            aria-label="Close Drawer"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
       {/* Scrollable Body */}
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
@@ -463,6 +499,7 @@ export function OrderDetailsDrawer({
         </div>
       </div>
     </aside>
+    </>
   );
 }
 

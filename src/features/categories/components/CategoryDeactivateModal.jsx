@@ -1,10 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '../../../components/ui/Button.jsx';
 import { AlertTriangle, X } from 'lucide-react';
 
 export function CategoryDeactivateModal({ isOpen, onClose, category, onConfirm }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && !isSubmitting) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose, isSubmitting]);
 
   if (!isOpen || !category) return null;
 
@@ -23,7 +34,12 @@ export function CategoryDeactivateModal({ isOpen, onClose, category, onConfirm }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-surface-container-lowest border border-error/40 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="deactivate-cat-title"
+        className="w-full max-w-md bg-surface-container-lowest border border-error/40 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+      >
         <div className="p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="w-10 h-10 rounded-full bg-error-container/20 border border-error/30 flex items-center justify-center text-error">
@@ -33,12 +49,13 @@ export function CategoryDeactivateModal({ isOpen, onClose, category, onConfirm }
               type="button"
               onClick={onClose}
               className="p-1.5 text-outline hover:text-on-surface rounded hover:bg-surface-container transition-colors"
+              aria-label="Close dialog"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
 
-          <h3 className="font-headline font-bold text-lg text-on-surface mb-2">
+          <h3 id="deactivate-cat-title" className="font-headline font-bold text-lg text-on-surface mb-2">
             Deactivate Category "{category.name}"?
           </h3>
 

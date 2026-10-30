@@ -45,6 +45,17 @@ export function AuditLogDetailsDrawer({
 }) {
   const [copiedId, setCopiedId] = React.useState(false);
 
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen || !log) return null;
 
   const actorName = log.actor
@@ -69,30 +80,44 @@ export function AuditLogDetailsDrawer({
   };
 
   return (
-    <aside className="fixed inset-y-0 right-0 w-full max-w-xl bg-surface-container-low shadow-2xl z-50 flex flex-col border-l border-outline-variant/30">
-      {/* Header */}
-      <div className="p-6 bg-surface-container-lowest flex items-center justify-between border-b border-outline-variant/30">
-        <div className="flex flex-col">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-primary" />
-            <span className="font-mono text-base font-bold text-on-surface uppercase tracking-wide">
-              Audit Event Dossier
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 transition-opacity"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+
+      <aside
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="audit-drawer-title"
+        className="fixed inset-y-0 right-0 w-full max-w-xl bg-surface-container-low shadow-2xl z-50 flex flex-col border-l border-outline-variant/30"
+      >
+        {/* Header */}
+        <div className="p-6 bg-surface-container-lowest flex items-center justify-between border-b border-outline-variant/30">
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-primary" />
+              <h2 id="audit-drawer-title" className="font-mono text-base font-bold text-on-surface uppercase tracking-wide">
+                Audit Event Dossier
+              </h2>
+            </div>
+            <span className="font-mono text-[11px] text-outline mt-1">
+              IMMUTABLE TRANSACTION RECORD
             </span>
           </div>
-          <span className="font-mono text-[11px] text-outline mt-1">
-            IMMUTABLE TRANSACTION RECORD
-          </span>
-        </div>
 
-        <button
-          type="button"
-          onClick={onClose}
-          className="p-1 rounded text-outline hover:text-on-surface hover:bg-surface-container transition-colors"
-          title="Close Drawer"
-        >
-          <X className="w-5 h-5" />
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1 rounded text-outline hover:text-on-surface hover:bg-surface-container transition-colors"
+            title="Close Drawer"
+            aria-label="Close Drawer"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
@@ -213,6 +238,7 @@ export function AuditLogDetailsDrawer({
         </div>
       </div>
     </aside>
+    </>
   );
 }
 

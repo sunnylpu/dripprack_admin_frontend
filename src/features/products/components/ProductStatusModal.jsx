@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '../../../components/ui/Button.jsx';
 import { Layers, X, AlertCircle } from 'lucide-react';
 
@@ -6,6 +6,23 @@ export function ProductStatusModal({ isOpen, onClose, product, onUpdateStatus })
   const [selectedStatus, setSelectedStatus] = useState(product?.status || 'draft');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && !isSubmitting) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose, isSubmitting]);
+
+  useEffect(() => {
+    if (product) {
+      setSelectedStatus(product.status || 'draft');
+    }
+  }, [product, isOpen]);
 
   if (!isOpen || !product) return null;
 
@@ -30,14 +47,19 @@ export function ProductStatusModal({ isOpen, onClose, product, onUpdateStatus })
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-surface-container-lowest border border-outline-variant/40 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="product-status-modal-title"
+        className="w-full max-w-md bg-surface-container-lowest border border-outline-variant/40 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+      >
         <div className="px-6 py-4 bg-surface-container-low border-b border-outline-variant/30 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded bg-surface-container flex items-center justify-center text-primary border border-outline-variant/30">
               <Layers className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-headline font-bold text-base text-on-surface">
+              <h3 id="product-status-modal-title" className="font-headline font-bold text-base text-on-surface">
                 Update Product Lifecycle Status
               </h3>
               <p className="font-mono text-[11px] text-outline">
@@ -49,6 +71,7 @@ export function ProductStatusModal({ isOpen, onClose, product, onUpdateStatus })
             type="button"
             onClick={onClose}
             className="p-1.5 text-outline hover:text-on-surface rounded hover:bg-surface-container transition-colors"
+            aria-label="Close modal"
           >
             <X className="w-4 h-4" />
           </button>

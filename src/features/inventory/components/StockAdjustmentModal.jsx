@@ -3,6 +3,7 @@ import {
   validateStockAdjustment,
   generateIdempotencyKey
 } from '../inventoryValidation.js';
+import { inventoryApi } from '../inventoryApi.js';
 import {
   SlidersHorizontal,
   PlusCircle,
@@ -12,7 +13,9 @@ import {
   X,
   AlertTriangle,
   CheckCircle2,
-  Package
+  Package,
+  Search,
+  Loader2
 } from 'lucide-react';
 
 const STANDARD_REASONS = [
@@ -40,14 +43,69 @@ export function StockAdjustmentModal({
   const [validationError, setValidationError] = useState('');
   const [apiError, setApiError] = useState(null);
 
+  // Search state for cross-catalog product lookup
+  const [productSearch, setProductSearch] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+
   // Tracks the serialized payload of the last submission attempt
   const lastAttemptRef = useRef(null);
+
+  // Candidate product list (either catalog search results or current page stock list)
+  const candidateProducts = useMemo(() => {
+    if (product) return [product];
+    if (productSearch.trim().length > 0) return searchResults;
+    return availableProducts;
+  }, [product, productSearch, searchResults, availableProducts]);
 
   // Active product record
   const currentProduct = useMemo(() => {
     if (product) return product;
-    return availableProducts.find((p) => p._id === selectedProductId) || null;
-  }, [product, availableProducts, selectedProductId]);
+    return (
+      candidateProducts.find((p) => p._id === selectedProductId) ||
+      availableProducts.find((p) => p._id === selectedProductId) ||
+      null
+    );
+  }, [product, candidateProducts, availableProducts, selectedProductId]);
+
+  // Escape key handler
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && !isSubmitting) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose, isSubmitting]);
+
+  // Debounced catalog search across inventory when query changes
+  useEffect(() => {
+    if (!isOpen || product || !productSearch.trim()) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const res = await inventoryApi.getStockList({ q: productSearch.trim(), limit: 20 });
+        const items = res?.data || res?.products || (Array.isArray(res) ? res : []);
+        setSearchResults(items);
+        if (items.length > 0 && !items.some((p) => p._id === selectedProductId)) {
+          setSelectedProductId(items[0]._id);
+        }
+      } catch (err) {
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [isOpen, product, productSearch, selectedProductId]);
 
   // Reset or initialize state when modal opens
   useEffect(() => {
@@ -58,6 +116,9 @@ export function StockAdjustmentModal({
       setValidationError('');
       setApiError(null);
       setIdempotencyKey(generateIdempotencyKey());
+      setProductSearch('');
+      setSearchResults([]);
+      setIsSearching(false);
       lastAttemptRef.current = null;
 
       if (product) {
@@ -157,7 +218,12 @@ export function StockAdjustmentModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="bg-surface-container-lowest w-full max-w-xl rounded-xl p-6 space-y-4 relative overflow-hidden shadow-2xl border border-outline-variant/30 my-8">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="stock-adjustment-modal-title"
+        className="bg-surface-container-lowest w-full max-w-xl rounded-xl p-6 space-y-4 relative overflow-hidden shadow-2xl border border-outline-variant/30 my-8"
+      >
         {/* Top Gradient Idempotency Stripe */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-secondary to-primary" />
 
@@ -168,9 +234,9 @@ export function StockAdjustmentModal({
               <SlidersHorizontal className="w-5 h-5 text-on-primary-container" />
             </div>
             <div>
-              <h3 className="font-headline font-bold text-base text-on-surface uppercase tracking-wide">
+              <h2 id="stock-adjustment-modal-title" className="font-headline font-bold text-base text-on-surface uppercase tracking-wide">
                 Stock Adjustment Terminal
-              </h3>
+              </h2>
               <span className="font-mono text-[10px] text-outline tracking-wider block">
                 ATOMIC INVENTORY MODIFIER // V2.4
               </span>
@@ -224,23 +290,60 @@ export function StockAdjustmentModal({
             </div>
           </div>
         ) : (
-          <div className="space-y-1.5">
-            <label className="font-mono text-xs uppercase text-on-surface-variant font-medium">
-              Target Product &amp; SKU (from current page - {availableProducts.length} items)
-            </label>
-            <p className="text-[11px] text-outline font-mono">
-              Displaying products from the active page view. To adjust an item on another page, navigate to that page or click &quot;Adjust Stock&quot; on its row.
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label htmlFor="catalog-product-search" className="font-mono text-xs uppercase text-on-surface-variant font-medium">
+                Target Product Lookup
+              </label>
+              <span className="text-[10px] font-mono text-outline">
+                {productSearch.trim()
+                  ? `${candidateProducts.length} search matches across catalog`
+                  : `Loaded view (${candidateProducts.length} products)`}
+              </span>
+            </div>
+
+            {/* Search Input across full inventory */}
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 text-outline absolute left-3 top-2.5 pointer-events-none" />
+              <input
+                id="catalog-product-search"
+                type="text"
+                value={productSearch}
+                onChange={(e) => setProductSearch(e.target.value)}
+                placeholder="Search across catalog by SKU or product name..."
+                className="w-full bg-surface-container font-mono text-xs text-on-surface pl-8 pr-8 py-2 rounded-lg border border-outline-variant/30 focus:outline-none focus:border-primary placeholder:text-outline/50"
+              />
+              {isSearching && (
+                <Loader2 className="w-3.5 h-3.5 text-primary absolute right-3 top-2.5 animate-spin" />
+              )}
+            </div>
+
+            <p className="text-[11px] text-outline font-mono leading-relaxed">
+              {productSearch.trim()
+                ? 'Displaying dynamic catalog search results from inventory API.'
+                : 'Currently displaying products from active page. Enter SKU or name above to search across the entire warehouse catalog.'}
             </p>
+
+            {/* Product Select Dropdown */}
+            <label htmlFor="target-product-select" className="sr-only">
+              Select Product
+            </label>
             <select
+              id="target-product-select"
               value={selectedProductId}
               onChange={(e) => handleProductChange(e.target.value)}
-              className="w-full bg-surface-container font-mono text-xs text-on-surface p-2.5 rounded-lg border border-outline-variant/30 focus:outline-none focus:border-primary cursor-pointer"
+              disabled={candidateProducts.length === 0}
+              className="w-full bg-surface-container font-mono text-xs text-on-surface p-2.5 rounded-lg border border-outline-variant/30 focus:outline-none focus:border-primary cursor-pointer disabled:opacity-50"
             >
-              {availableProducts.map((p) => (
-                <option key={p._id} value={p._id}>
-                  {p.sku} — {p.name} (Avail: {p.stock?.available ?? 0})
-                </option>
-              ))}
+              {candidateProducts.length > 0 ? (
+                candidateProducts.map((p) => (
+                  <option key={p._id} value={p._id}>
+                    {p.sku} — {p.name} (Avail: {p.stock?.available ?? 0})
+                  </option>
+                ))
+              ) : (
+                <option value="">No products found matching &quot;{productSearch}&quot;</option>
+              )}
             </select>
             {currentProduct && (
               <div className="grid grid-cols-3 gap-2 text-center font-mono pt-1">

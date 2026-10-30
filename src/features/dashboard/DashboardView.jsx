@@ -78,7 +78,7 @@ export function DashboardView() {
       <PageHeader
         title="Executive Control Center"
         subtitle={`Operational telemetry for authenticated administrator ${user?.firstName || 'Operator'} (${user?.email || 'admin'})`}
-        badge="PHASE 2 LIVE"
+        badge="OPERATIONAL OVERVIEW"
         actions={
           <button
             type="button"
@@ -88,16 +88,16 @@ export function DashboardView() {
             title="Refresh dashboard metrics"
           >
             <RefreshCw className={`w-3.5 h-3.5 text-primary ${isRefreshing ? 'animate-spin' : ''}`} />
-            <span>{isRefreshing ? 'Refreshing...' : 'Pulse Ingest'}</span>
+            <span>{isRefreshing ? 'Refreshing...' : 'Refresh Data'}</span>
           </button>
         }
       />
 
-      {/* Real-time Tactical System Banner */}
+      {/* API Ingestion & Data Provenance Banner */}
       <div className="w-full bg-surface-container-lowest p-3 rounded-lg border border-outline-variant/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-md">
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-1.5 px-2.5 py-0.5 bg-surface-container-high rounded text-secondary font-mono text-xs">
-            <span className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-secondary" />
             <span>API: /admin/dashboard/summary</span>
           </div>
 
@@ -122,7 +122,7 @@ export function DashboardView() {
             onClick={() => loadDashboardData(true)}
             disabled={isRefreshing || isLoading}
             className="p-1 rounded bg-surface-container hover:bg-surface-container-high text-outline hover:text-on-surface transition-colors"
-            title="Force refresh metrics"
+            title="Refresh metrics"
             aria-label="Refresh metrics"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />

@@ -20,6 +20,18 @@ export function OrderCancelModal({
   const [validationError, setValidationError] = useState('');
   const [apiError, setApiError] = useState('');
 
+  // Escape key handler
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && !isSubmitting) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose, isSubmitting]);
+
   useEffect(() => {
     if (isOpen) {
       setReason('');
@@ -50,12 +62,17 @@ export function OrderCancelModal({
 
   return (
     <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="w-full max-w-lg bg-surface-container-low p-6 rounded-xl shadow-2xl border border-error/40 flex flex-col gap-4 my-8">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cancel-order-modal-title"
+        className="w-full max-w-lg bg-surface-container-low p-6 rounded-xl shadow-2xl border border-error/40 flex flex-col gap-4 my-8"
+      >
         {/* Header */}
         <div className="flex items-center justify-between pb-2 border-b border-outline-variant/20">
           <div className="flex items-center gap-2.5">
             <Ban className="w-5 h-5 text-error" />
-            <h2 className="font-headline font-bold text-base text-on-surface uppercase tracking-wide">
+            <h2 id="cancel-order-modal-title" className="font-headline font-bold text-base text-on-surface uppercase tracking-wide">
               Cancel Order &amp; Release Inventory
             </h2>
           </div>
@@ -64,6 +81,7 @@ export function OrderCancelModal({
             onClick={onClose}
             disabled={isSubmitting}
             className="text-outline hover:text-on-surface p-1 rounded hover:bg-surface-container transition-colors disabled:opacity-50"
+            aria-label="Close modal"
           >
             <X className="w-5 h-5" />
           </button>
