@@ -8,7 +8,7 @@ import { ProductsView } from '../features/products/ProductsView.jsx';
 import { CategoriesView } from '../features/categories/CategoriesView.jsx';
 import { InventoryView } from '../features/inventory/InventoryView.jsx';
 import { OrdersView } from '../features/orders/OrdersView.jsx';
-import { AuditLogsPlaceholder } from '../features/placeholders/AuditLogsPlaceholder.jsx';
+import { AuditLogsView } from '../features/auditLogs/AuditLogsView.jsx';
 
 export function AppRouter() {
   return (
@@ -29,7 +29,7 @@ export function AppRouter() {
         <Route path="/categories" element={<CategoriesView />} />
         <Route path="/orders" element={<OrdersView />} />
         <Route path="/inventory" element={<InventoryView />} />
-        <Route path="/audit-logs" element={<AuditLogsPlaceholder />} />
+        <Route path="/audit-logs" element={<AuditLogsView />} />
       </Route>
 
       {/* Redirects */}
