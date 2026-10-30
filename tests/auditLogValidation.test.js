@@ -114,3 +114,4 @@ test('structureMixedDetails safely handles primitives, nested objects, and array
   assert.equal(structuredArr[0].key, '[0]');
   assert.equal(structuredArr[0].value, 'order');
 });
+

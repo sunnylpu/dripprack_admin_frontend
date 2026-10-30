@@ -122,3 +122,4 @@ test('auditLogApi has no mutation methods and remains strictly read-only', () =>
   assert.equal(auditLogApi.updateAuditLog, undefined);
   assert.equal(auditLogApi.deleteAuditLog, undefined);
 });
+
