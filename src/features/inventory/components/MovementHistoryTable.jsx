@@ -356,3 +356,4 @@ export function MovementHistoryTable({
     </div>
   );
 }
+

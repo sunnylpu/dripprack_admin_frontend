@@ -164,3 +164,4 @@ test('generateIdempotencyKey produces valid RFC 4122 v4 UUID format', () => {
   assert.match(key2, uuidRegex, `Key must be a valid UUIDv4: ${key2}`);
   assert.notEqual(key1, key2, 'Generated keys must be unique');
 });
+

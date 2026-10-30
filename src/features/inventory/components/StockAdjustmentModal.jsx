@@ -422,3 +422,4 @@ export function StockAdjustmentModal({
     </div>
   );
 }
+

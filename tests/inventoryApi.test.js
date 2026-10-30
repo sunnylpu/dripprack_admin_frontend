@@ -143,3 +143,4 @@ test('inventoryApi.adjustStock transmits payload and Idempotency-Key header', as
     apiClient.post = originalPost;
   }
 });
+
