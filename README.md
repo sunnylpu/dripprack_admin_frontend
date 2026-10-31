@@ -44,6 +44,7 @@ The DripRack Admin application is deployed completely independently from the cus
   - Full server-side pagination with preservation of top-level `meta` envelope.
   - Strict integer cents monetary input parser preventing floating-point imprecision.
   - Product creation and editing drawers with HTTPS image URL preview and active category validation.
+  - V1 size/colour convention: create each sellable combination as a separate SKU product; structured `attributes.size` and `attributes.color` are sent to the backend. There is no parent-product variant grouping endpoint.
   - Category taxonomy management with soft deactivation (`isActive: false`) and product association integrity guards.
 
 ### 4. Inventory & Stock Movements (Phase 4)
