@@ -11,8 +11,8 @@ Built with **React 18**, **Vite**, and **Tailwind CSS**, strictly engineered aga
 The DripRack Admin application is deployed completely independently from the customer storefront (`client_frontend`). It interfaces with the production Express/MongoDB backend (`driprack-backend`) through authenticated REST API contracts.
 
 ### Core Security & In-Memory Authentication
-1. **Zero Persistent Storage:** Access tokens and sensitive authentication state are held strictly in application memory (`tokenStorage.js` / `apiClient.js`). Neither `localStorage` nor `sessionStorage` is ever used for credentials or tokens.
-2. **HttpOnly Refresh Cookie:** Session persistence across browser reloads is handled exclusively via secure HttpOnly cookie rotation (`POST /api/v1/auth/refresh`).
+1. **Zero Persistent Storage:** Access tokens and sensitive authentication state are held strictly in application memory (`apiClient.js`). Neither `localStorage` nor `sessionStorage` is used for credentials or tokens.
+2. **Isolated HttpOnly Refresh Cookie:** The admin portal uses only the `adminRefreshToken` HttpOnly cookie. Authentication requests send `X-App-Client: admin`; refresh/logout target the admin session and do not clear the customer's `customerRefreshToken`.
 3. **Single-Flight Concurrency Mutex:** Simultaneous mounts or parallel 401 encounters share a single in-flight refresh promise, preventing race conditions or multiple refresh requests.
 4. **Mutation Replay Safety:** Following a 401 Unauthorized response, only idempotent read requests (`GET`, `HEAD`, `OPTIONS`) automatically refresh tokens and replay once. Non-idempotent mutations (`POST`, `PATCH`, `DELETE`) are **never** auto-replayed, preventing duplicate order actions, accidental inventory adjustments, or duplicate entity creation.
 5. **Strict RBAC & Status Verification:** Access requires both `user.role === 'admin'` and `user.status === 'active'`. Deactivated operators or customer roles are rejected and their session is revoked.
@@ -44,6 +44,7 @@ The DripRack Admin application is deployed completely independently from the cus
   - Full server-side pagination with preservation of top-level `meta` envelope.
   - Strict integer cents monetary input parser preventing floating-point imprecision.
   - Product creation and editing drawers with HTTPS image URL preview and active category validation.
+  - V1 size/colour convention: create each sellable combination as a separate SKU product; structured `attributes.size` and `attributes.color` are sent to the backend. There is no parent-product variant grouping endpoint.
   - Category taxonomy management with soft deactivation (`isActive: false`) and product association integrity guards.
 
 ### 4. Inventory & Stock Movements (Phase 4)
@@ -86,32 +87,36 @@ The DripRack Admin application is deployed completely independently from the cus
 
 ## Backend API Integration Reference
 
-| Area | HTTP Method & Relative Endpoint | Description | Query / Body Parameters |
+The admin application uses the shared API base URL `VITE_API_BASE_URL` and sends `X-App-Client: admin` with credentialed requests. The backend contract remains authoritative; monetary fields use integer minor units (`*Cents`).
+
+| Area | HTTP method & relative endpoint | Description | Query / body / headers |
 |---|---|---|---|
-| **Auth** | `POST /auth/login` | Operator credentials sign-in | `body: { email, password }` |
-| **Auth** | `POST /auth/refresh` | Refresh access token via HttpOnly cookie | *(HttpOnly cookie credentials)* |
-| **Auth** | `POST /auth/logout` | Revoke session and clear cookies | *(HttpOnly cookie credentials)* |
-| **Auth** | `GET /auth/me` | Fetch authenticated profile & role | Bearer token |
-| **Dashboard** | `GET /admin/dashboard/summary` | Executive metrics summary | None |
-| **Products** | `GET /admin/products` | Paginated catalog list | `page`, `limit`, `q`, `category`, `status`, `inStock`, `sortBy` |
-| **Products** | `GET /admin/products/:id` | Single product details | None |
-| **Products** | `POST /products` | Create product (admin) | `body: { sku, name, slug, category, price, ... }` |
-| **Products** | `PATCH /products/:id` | Update product (admin) | `body: Partial<Product>` |
-| **Products** | `PATCH /products/:id/status` | Transition lifecycle status | `body: { status: 'draft'\|'published'\|'archived' }` |
-| **Categories** | `GET /admin/categories` | Admin category listing | `page`, `limit`, `includeInactive`, `sortBy` |
-| **Categories** | `GET /categories` | Active categories (public/dropdown) | `page`, `limit` |
-| **Categories** | `POST /categories` | Create category | `body: { name, slug, description, isActive }` |
-| **Categories** | `PATCH /categories/:id` | Update category | `body: Partial<Category>` |
-| **Categories** | `DELETE /categories/:id` | Soft deactivation (`isActive: false`)| None |
-| **Inventory** | `GET /inventory/stock` | Warehouse stock listing | `page`, `limit`, `q`, `category`, `lowStockOnly`, `inStock`, `sortBy` |
-| **Inventory** | `GET /inventory/low-stock` | Critical low-stock report | `page`, `limit`, `q`, `category`, `sortBy` |
-| **Inventory** | `GET /inventory/movements` | Stock movement audit trail | `page`, `limit`, `productId`, `movementType`, `actor`, `startDate`, `endDate`, `sortBy` |
-| **Inventory** | `POST /inventory/adjust` | Atomic stock delta adjustment | `headers: { 'idempotency-key' }`, `body: { productId, quantityDelta, reason }` |
-| **Orders** | `GET /admin/orders` | Paginated orders listing | `page`, `limit`, `status`, `paymentMethod`, `paymentStatus`, `startDate`, `endDate` |
-| **Orders** | `GET /admin/orders/:reference` | Full order dossier & logs | None |
-| **Orders** | `PATCH /admin/orders/:reference/status`| Advance fulfillment status | `body: { status, tracking?, codPaymentCollected? }` |
-| **Orders** | `POST /admin/orders/:reference/cancel` | Cancel order & release stock | `body: { reason }` |
-| **Audit Logs** | `GET /admin/audit-logs` | Administrative audit trail | `page`, `limit`, `actor`, `action`, `resourceType`, `resourceId`, `startDate`, `endDate` |
+| **Auth** | `POST /auth/admin/login` | Admin sign-in; sets `adminRefreshToken` | `X-App-Client: admin`; `{ email, password }` |
+| **Auth** | `POST /auth/admin/refresh` | Rotate admin refresh session | HttpOnly cookie; `X-App-Client: admin` |
+| **Auth** | `POST /auth/admin/logout` | Revoke only the admin session | HttpOnly cookie; `X-App-Client: admin` |
+| **Auth** | `GET /auth/me` | Fetch authenticated profile | Bearer access token |
+| **Dashboard** | `GET /admin/dashboard/summary` | Executive metrics | None |
+| **Products** | `GET /admin/products` | Paginated admin catalog | `page`, `limit`, `q`, `category`, `status`, `inStock`, `sortBy` |
+| **Products** | `GET /admin/products/:id` | Admin product detail | None |
+| **Products** | `POST /products` | Create product (initial stock is always zero) | `sku`, `name`, `slug?`, `description`, `category`, `priceCents`, `compareAtPriceCents?`, `images?`, `attributes?`, `status?`, `lowStockThreshold?` |
+| **Products** | `PATCH /products/:id` | Update catalog fields, not inventory | Partial catalog fields; `attributes: { size?, color? }` |
+| **Products** | `PATCH /products/:id/status` | Change product lifecycle status | `{ status: 'draft' | 'published' | 'archived' }` |
+| **Categories** | `GET /admin/categories` | Paginated admin category list | `page`, `limit`, `includeInactive` |
+| **Categories** | `GET /categories` | Public active categories; not paginated | None |
+| **Categories** | `POST /categories` | Create category | `name`, `slug?`, `description?`, `isActive?` |
+| **Categories** | `PATCH /categories/:id` | Update category | Partial category fields |
+| **Categories** | `DELETE /categories/:id` | Soft-deactivate category | None |
+| **Inventory** | `GET /inventory/stock` | Warehouse stock list | `page`, `limit`, `q`, `category`, `lowStockOnly`, `inStock`, `sortBy` |
+| **Inventory** | `GET /inventory/low-stock` | Low-stock report | `page`, `limit`, `q`, `category`, `sortBy` |
+| **Inventory** | `GET /inventory/movements` | Stock movement ledger | `page`, `limit`, `productId`, `movementType`, `actor`, `startDate`, `endDate`, `sortBy` |
+| **Inventory** | `POST /inventory/adjust` | Atomic stock adjustment | `Idempotency-Key`; `{ productId, quantityDelta, reason }` |
+| **Orders** | `GET /admin/orders` | Paginated admin orders | `page`, `limit`, `orderStatus`, `paymentStatus`, `paymentMethod`, `startDate`, `endDate`, `search` |
+| **Orders** | `GET /admin/orders/:reference` | Order details, payment and order audit history | None |
+| **Orders** | `PATCH /admin/orders/:reference/status` | Advance fulfillment sequentially | `{ status, tracking?, codPaymentCollected? }` |
+| **Orders** | `POST /admin/orders/:reference/cancel` | Cancel eligible unshipped order and release reservation | Optional `{ reason }` |
+| **Audit Logs** | `GET /admin/audit-logs` | Read-only admin audit trail | `page`, `limit`, `actor`, `action`, `resourceType`, `resourceId`, `startDate`, `endDate` |
+
+For the customer storefront's public catalog, cart, address, checkout, order and payment contracts, use the backend's canonical [Storefront API Contract](https://github.com/sunnylpu/dripprack-backend/blob/main/docs/storefront-api-contract.md). Do not infer customer endpoints from this admin reference.
 
 ---
 
@@ -276,7 +281,7 @@ The project uses the Node.js native test runner (`node --test`), requiring zero 
 ```bash
 npm test
 ```
-*Current test suite: 65 passing unit and integration tests across all modules.*
+Test counts and pass/fail results are determined by the current run; do not rely on a previously recorded count.
 
 ### Run Production Build
 ```bash

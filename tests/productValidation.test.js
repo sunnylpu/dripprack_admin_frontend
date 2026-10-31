@@ -9,6 +9,8 @@ test('validateProductForm succeeds on valid product payload', () => {
     slug: 'cyberpunk-oversized-acid-hoodie',
     description: 'Heavyweight oversized streetwear hoodie designed for cold weather layering.',
     category: '653f8a129e1b2c001f38e0a1',
+    size: 'M',
+    color: 'Black',
     price: '149.99',
     compareAtPrice: '179.99',
     images: ['https://images.unsplash.com/photo-1556905055-8f358a7a47b2'],
@@ -22,6 +24,7 @@ test('validateProductForm succeeds on valid product payload', () => {
   assert.equal(parsedPayload.sku, 'DRIP-HOODIE-BLK-M');
   assert.equal(parsedPayload.priceCents, 14999);
   assert.equal(parsedPayload.compareAtPriceCents, 17999);
+  assert.deepEqual(parsedPayload.attributes, { size: 'M', color: 'Black' });
 });
 
 test('validateProductForm catches invalid SKU, compareAtPrice < price, and non-HTTPS image URLs', () => {
