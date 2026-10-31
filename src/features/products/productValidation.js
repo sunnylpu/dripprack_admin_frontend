@@ -125,6 +125,17 @@ export function validateProductForm(formData, isUpdate = false) {
     errors.status = 'Status must be draft, published, or archived';
   }
 
+  // Variant attributes (optional Size & Color)
+  const size = (formData.size !== undefined ? formData.size : formData.attributes?.size || '').trim();
+  if (size.length > 50) {
+    errors.size = 'Size cannot exceed 50 characters';
+  }
+
+  const color = (formData.color !== undefined ? formData.color : formData.attributes?.color || '').trim();
+  if (color.length > 50) {
+    errors.color = 'Color cannot exceed 50 characters';
+  }
+
   const isValid = Object.keys(errors).length === 0;
 
   // Construct sanitized API payload
@@ -141,6 +152,10 @@ export function validateProductForm(formData, isUpdate = false) {
     parsedPayload.compareAtPriceCents = null; // Backend accepts null to unset compareAtPrice
   }
   parsedPayload.images = images;
+  parsedPayload.attributes = {
+    size: size || null,
+    color: color || null
+  };
   if (!isUpdate || formData.status) parsedPayload.status = status;
   parsedPayload.lowStockThreshold = lowStockThreshold;
 

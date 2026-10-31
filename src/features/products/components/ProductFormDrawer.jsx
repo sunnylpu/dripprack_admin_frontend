@@ -24,6 +24,8 @@ export function ProductFormDrawer({ isOpen, onClose, productToEdit, onSave }) {
   const [category, setCategory] = useState('');
   const [price, setPrice] = useState('');
   const [compareAtPrice, setCompareAtPrice] = useState('');
+  const [size, setSize] = useState('');
+  const [color, setColor] = useState('');
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState('draft');
   const [lowStockThreshold, setLowStockThreshold] = useState(5);
@@ -80,6 +82,8 @@ export function ProductFormDrawer({ isOpen, onClose, productToEdit, onSave }) {
           ? formatCentsToDecimalInput(productToEdit.compareAtPriceCents)
           : ''
       );
+      setSize(productToEdit.attributes?.size || '');
+      setColor(productToEdit.attributes?.color || '');
       setDescription(productToEdit.description || '');
       setStatus(productToEdit.status || 'draft');
       setLowStockThreshold(productToEdit.lowStockThreshold ?? 5);
@@ -91,6 +95,8 @@ export function ProductFormDrawer({ isOpen, onClose, productToEdit, onSave }) {
       setCategory('');
       setPrice('');
       setCompareAtPrice('');
+      setSize('');
+      setColor('');
       setDescription('');
       setStatus('draft');
       setLowStockThreshold(5);
@@ -140,6 +146,8 @@ export function ProductFormDrawer({ isOpen, onClose, productToEdit, onSave }) {
         category,
         price,
         compareAtPrice,
+        size,
+        color,
         description,
         status,
         lowStockThreshold,
@@ -337,6 +345,39 @@ export function ProductFormDrawer({ isOpen, onClose, productToEdit, onSave }) {
                   {fieldErrors.description}
                 </span>
               )}
+            </div>
+          </div>
+
+          {/* Variant Specifications */}
+          <div className="space-y-4 pt-4 border-t border-outline-variant/20">
+            <h4 className="font-mono text-xs text-primary uppercase tracking-wider font-semibold">
+              Variant Attributes (V1 Autonomous SKU)
+            </h4>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Input
+                label="Size"
+                value={size}
+                onChange={(e) => {
+                  setSize(e.target.value);
+                  if (fieldErrors.size) setFieldErrors((prev) => ({ ...prev, size: undefined }));
+                }}
+                placeholder="e.g. S, M, L, XL, 32/34"
+                error={fieldErrors.size}
+                helperText="Garment size specification"
+              />
+
+              <Input
+                label="Color / Wash"
+                value={color}
+                onChange={(e) => {
+                  setColor(e.target.value);
+                  if (fieldErrors.color) setFieldErrors((prev) => ({ ...prev, color: undefined }));
+                }}
+                placeholder="e.g. Vintage Black, Acid Wash"
+                error={fieldErrors.color}
+                helperText="Garment colorway or wash finish"
+              />
             </div>
           </div>
 
