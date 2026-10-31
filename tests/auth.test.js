@@ -61,3 +61,33 @@ test('Admin API requests always identify the admin client and include credential
     globalThis.fetch = originalFetch;
   }
 });
+
+test('Dedicated customer auth aliases do not trigger an admin refresh attempt on 401', async () => {
+  const originalFetch = globalThis.fetch;
+  let fetchCalls = 0;
+
+  globalThis.fetch = async () => {
+    fetchCalls += 1;
+    return new Response(JSON.stringify({
+      success: false,
+      statusCode: 401,
+      error: { code: 'INVALID_CREDENTIALS', message: 'Invalid credentials' }
+    }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  };
+
+  try {
+    await assert.rejects(
+      request('/auth/customer/login', {
+        method: 'POST',
+        body: JSON.stringify({ email: 'user@example.com', password: 'invalid' })
+      }),
+      (error) => error.code === 'INVALID_CREDENTIALS'
+    );
+    assert.equal(fetchCalls, 1, 'A login failure must not trigger refresh');
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
