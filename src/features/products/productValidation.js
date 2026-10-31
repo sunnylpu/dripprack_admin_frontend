@@ -119,21 +119,21 @@ export function validateProductForm(formData, isUpdate = false) {
     }
   }
 
-  // Variant attributes: one product document represents one sellable SKU.
-  const size = (formData.size ?? formData.attributes?.size ?? '').trim();
-  if (size.length > 50) {
-    errors.size = 'Size cannot exceed 50 characters';
-  }
-
-  const color = (formData.color ?? formData.attributes?.color ?? '').trim();
-  if (color.length > 50) {
-    errors.color = 'Color cannot exceed 50 characters';
-  }
-
   // Status (optional draft, published, archived)
   const status = formData.status || 'draft';
   if (!['draft', 'published', 'archived'].includes(status)) {
     errors.status = 'Status must be draft, published, or archived';
+  }
+
+  // Variant attributes (optional Size & Color)
+  const size = (formData.size !== undefined ? formData.size : formData.attributes?.size || '').trim();
+  if (size.length > 50) {
+    errors.size = 'Size cannot exceed 50 characters';
+  }
+
+  const color = (formData.color !== undefined ? formData.color : formData.attributes?.color || '').trim();
+  if (color.length > 50) {
+    errors.color = 'Color cannot exceed 50 characters';
   }
 
   const isValid = Object.keys(errors).length === 0;
