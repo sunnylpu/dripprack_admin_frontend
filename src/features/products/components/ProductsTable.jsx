@@ -126,9 +126,16 @@ export function ProductsTable({
                       <span className="font-headline font-bold text-xs text-on-surface truncate group-hover:text-primary transition-colors">
                         {product.name}
                       </span>
-                      <span className="font-mono text-[11px] text-outline tracking-wider uppercase mt-0.5">
-                        {product.sku}
-                      </span>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="font-mono text-[11px] text-outline tracking-wider uppercase">
+                          {product.sku}
+                        </span>
+                        {(product.attributes?.size || product.attributes?.color) && (
+                          <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-surface-container text-primary border border-primary/20">
+                            {[product.attributes.size, product.attributes.color].filter(Boolean).join(' • ')}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </td>
