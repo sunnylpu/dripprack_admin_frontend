@@ -4,7 +4,8 @@ import {
   getAccessToken,
   setAccessToken,
   clearAccessToken,
-  subscribeAuthChange
+  subscribeAuthChange,
+  request
 } from '../src/lib/apiClient.js';
 
 test('Access token is held strictly in-memory and can be set, retrieved, and cleared', () => {
@@ -38,3 +39,25 @@ test('No access tokens or secrets are stored in localStorage or sessionStorage',
   assert.equal(typeof globalThis.sessionStorage, 'undefined');
 });
 
+
+test('Admin API requests always identify the admin client and include credentials', async () => {
+  const originalFetch = globalThis.fetch;
+  let capturedOptions;
+
+  globalThis.fetch = async (_url, options) => {
+    capturedOptions = options;
+    return new Response(JSON.stringify({ success: true, data: { ok: true } }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  };
+
+  try {
+    const result = await request('/test/admin-client-header');
+    assert.deepEqual(result, { ok: true });
+    assert.equal(capturedOptions.headers.get('X-App-Client'), 'admin');
+    assert.equal(capturedOptions.credentials, 'include');
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
