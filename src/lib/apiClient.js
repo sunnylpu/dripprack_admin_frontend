@@ -80,6 +80,11 @@ export async function request(endpoint, options = {}) {
     headers.set('Content-Type', 'application/json');
   }
 
+  // Attach client identity header to enforce admin session isolation
+  if (!headers.has('X-App-Client')) {
+    headers.set('X-App-Client', 'admin');
+  }
+
   // Attach in-memory Bearer access token if present
   if (inMemoryAccessToken && !headers.has('Authorization')) {
     headers.set('Authorization', `Bearer ${inMemoryAccessToken}`);
@@ -178,7 +183,8 @@ async function refreshAccessToken() {
       const res = await fetch(`${API_BASE_URL}/auth/refresh`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-App-Client': 'admin'
         },
         credentials: 'include'
       });
