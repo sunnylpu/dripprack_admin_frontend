@@ -119,6 +119,17 @@ export function validateProductForm(formData, isUpdate = false) {
     }
   }
 
+  // Variant attributes: one product document represents one sellable SKU.
+  const size = (formData.size ?? formData.attributes?.size ?? '').trim();
+  if (size.length > 50) {
+    errors.size = 'Size cannot exceed 50 characters';
+  }
+
+  const color = (formData.color ?? formData.attributes?.color ?? '').trim();
+  if (color.length > 50) {
+    errors.color = 'Color cannot exceed 50 characters';
+  }
+
   // Status (optional draft, published, archived)
   const status = formData.status || 'draft';
   if (!['draft', 'published', 'archived'].includes(status)) {
@@ -141,6 +152,10 @@ export function validateProductForm(formData, isUpdate = false) {
     parsedPayload.compareAtPriceCents = null; // Backend accepts null to unset compareAtPrice
   }
   parsedPayload.images = images;
+  parsedPayload.attributes = {
+    size: size || null,
+    color: color || null
+  };
   if (!isUpdate || formData.status) parsedPayload.status = status;
   parsedPayload.lowStockThreshold = lowStockThreshold;
 
