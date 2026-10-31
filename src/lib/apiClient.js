@@ -105,7 +105,9 @@ export async function request(endpoint, options = {}) {
   }
 
   // Handle 401 Unauthorized for protected routes (except auth endpoints)
-  const isAuthEndpoint = endpoint.includes('/auth/login') || endpoint.includes('/auth/refresh') || endpoint.includes('/auth/logout');
+  // Dedicated customer/admin auth aliases are also terminal auth operations.
+  // Never attempt refresh/replay after a failed login, refresh, or logout request.
+  const isAuthEndpoint = /\/auth\/(?:admin\/|customer\/)?(?:login|refresh|logout)(?:[?#]|$)/.test(endpoint);
   if (response.status === 401 && !isAuthEndpoint && !options._isRetry) {
     const method = (options.method || 'GET').toUpperCase();
     const isIdempotent = ['GET', 'HEAD', 'OPTIONS'].includes(method);
