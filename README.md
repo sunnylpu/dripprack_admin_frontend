@@ -11,8 +11,8 @@ Built with **React 18**, **Vite**, and **Tailwind CSS**, strictly engineered aga
 The DripRack Admin application is deployed completely independently from the customer storefront (`client_frontend`). It interfaces with the production Express/MongoDB backend (`driprack-backend`) through authenticated REST API contracts.
 
 ### Core Security & In-Memory Authentication
-1. **Zero Persistent Storage:** Access tokens and sensitive authentication state are held strictly in application memory (`tokenStorage.js` / `apiClient.js`). Neither `localStorage` nor `sessionStorage` is ever used for credentials or tokens.
-2. **HttpOnly Refresh Cookie:** Session persistence across browser reloads is handled exclusively via secure HttpOnly cookie rotation (`POST /api/v1/auth/refresh`).
+1. **Zero Persistent Storage:** Access tokens and sensitive authentication state are held strictly in application memory (`apiClient.js`). Neither `localStorage` nor `sessionStorage` is used for credentials or tokens.
+2. **Isolated HttpOnly Refresh Cookie:** The admin portal uses only the `adminRefreshToken` HttpOnly cookie. Authentication requests send `X-App-Client: admin`; refresh/logout target the admin session and do not clear the customer's `customerRefreshToken`.
 3. **Single-Flight Concurrency Mutex:** Simultaneous mounts or parallel 401 encounters share a single in-flight refresh promise, preventing race conditions or multiple refresh requests.
 4. **Mutation Replay Safety:** Following a 401 Unauthorized response, only idempotent read requests (`GET`, `HEAD`, `OPTIONS`) automatically refresh tokens and replay once. Non-idempotent mutations (`POST`, `PATCH`, `DELETE`) are **never** auto-replayed, preventing duplicate order actions, accidental inventory adjustments, or duplicate entity creation.
 5. **Strict RBAC & Status Verification:** Access requires both `user.role === 'admin'` and `user.status === 'active'`. Deactivated operators or customer roles are rejected and their session is revoked.
@@ -276,7 +276,7 @@ The project uses the Node.js native test runner (`node --test`), requiring zero 
 ```bash
 npm test
 ```
-*Current test suite: 65 passing unit and integration tests across all modules.*
+Test counts and pass/fail results are determined by the current run; do not rely on a previously recorded count.
 
 ### Run Production Build
 ```bash
