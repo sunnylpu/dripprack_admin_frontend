@@ -9,6 +9,7 @@ import { CategoriesView } from '../features/categories/CategoriesView.jsx';
 import { InventoryView } from '../features/inventory/InventoryView.jsx';
 import { OrdersView } from '../features/orders/OrdersView.jsx';
 import { AuditLogsView } from '../features/auditLogs/AuditLogsView.jsx';
+import { StorefrontSectionsView } from '../features/sections/StorefrontSectionsView.jsx';
 
 export function AppRouter() {
   return (
@@ -29,6 +30,7 @@ export function AppRouter() {
         <Route path="/categories" element={<CategoriesView />} />
         <Route path="/orders" element={<OrdersView />} />
         <Route path="/inventory" element={<InventoryView />} />
+        <Route path="/storefront" element={<StorefrontSectionsView />} />
         <Route path="/audit-logs" element={<AuditLogsView />} />
       </Route>
 

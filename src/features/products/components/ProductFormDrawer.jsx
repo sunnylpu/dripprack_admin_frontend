@@ -107,6 +107,18 @@ export function ProductFormDrawer({ isOpen, onClose, productToEdit, onSave }) {
     setServerError('');
   }, [productToEdit, isOpen]);
 
+  // Global keydown handler for Escape (must be before conditional return for Rules of Hooks)
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && !isSubmitting) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose, isSubmitting]);
+
   if (!isOpen) return null;
 
   const handleAddImage = () => {
@@ -171,17 +183,6 @@ export function ProductFormDrawer({ isOpen, onClose, productToEdit, onSave }) {
       setIsSubmitting(false);
     }
   };
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape' && !isSubmitting) {
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose, isSubmitting]);
 
   return (
     <div

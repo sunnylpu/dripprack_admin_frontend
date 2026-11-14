@@ -9,13 +9,15 @@ import {
   Boxes,
   ShieldCheck,
   LogOut,
-  X
+  X,
+  MonitorPlay
 } from 'lucide-react';
 
 const navItems = [
   { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/orders', label: 'Orders & Fulfillment', icon: ShoppingBag },
   { path: '/products', label: 'Products Catalog', icon: Layers },
+  { path: '/storefront', label: 'Storefront & Videos', icon: MonitorPlay },
   { path: '/categories', label: 'Category Taxonomy', icon: FolderTree },
   { path: '/inventory', label: 'Inventory & Movements', icon: Boxes },
   { path: '/audit-logs', label: 'Security Audit Trail', icon: ShieldCheck }
