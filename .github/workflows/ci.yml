@@ -1,15 +1,21 @@
-name: Admin Frontend CI
+name: Admin Frontend CI & Build Verification
 
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test-and-build:
     name: Run Unit Tests & Production Build
     runs-on: ubuntu-latest
+    timeout-minutes: 8
 
     steps:
       - name: Checkout repository
@@ -29,3 +35,14 @@ jobs:
 
       - name: Build production bundle
         run: npm run build
+        env:
+          VITE_API_BASE_URL: https://dripprack-backend.onrender.com/api/v1
+          VITE_CURRENCY_CODE: USD
+
+      - name: Validate build artifacts
+        run: |
+          if [ ! -f "dist/index.html" ]; then
+            echo "❌ dist/index.html is missing from build output!"
+            exit 1
+          fi
+          echo "✅ Build artifacts verified successfully in dist/"
