@@ -106,7 +106,7 @@ export function StorefrontSectionsView() {
 
         <div className="flex items-center gap-2">
           <a
-            href="http://localhost:5174/"
+            href={import.meta.env.VITE_STOREFRONT_URL || "https://dripprack-store.vercel.app/"}
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md bg-surface-container border border-outline-variant/40 hover:bg-surface-container-high text-xs font-headline font-semibold text-on-surface transition-colors"
