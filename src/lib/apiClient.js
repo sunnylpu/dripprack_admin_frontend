@@ -231,6 +231,60 @@ export const apiClient = {
     request(endpoint, { ...options, method: 'PATCH', body: body ? JSON.stringify(body) : undefined }),
   delete: (endpoint, options = {}) => request(endpoint, { ...options, method: 'DELETE' }),
 
+  /**
+   * Upload media file (video or image) with live progress tracking
+   */
+  upload: async (file, onProgress) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    if (typeof XMLHttpRequest !== 'undefined' && onProgress) {
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        const url = `${API_BASE_URL}/uploads`;
+
+        xhr.open('POST', url, true);
+        xhr.withCredentials = true;
+        xhr.setRequestHeader('X-App-Client', 'admin');
+        if (inMemoryAccessToken) {
+          xhr.setRequestHeader('Authorization', `Bearer ${inMemoryAccessToken}`);
+        }
+
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+            onProgress(percent);
+          }
+        };
+
+        xhr.onload = () => {
+          try {
+            const json = JSON.parse(xhr.responseText);
+            if (xhr.status >= 200 && xhr.status < 300) {
+              resolve(json.data);
+            } else {
+              reject(new Error(json.message || `Upload failed with status ${xhr.status}`));
+            }
+          } catch {
+            reject(new Error('Failed to parse server upload response'));
+          }
+        };
+
+        xhr.onerror = () => {
+          reject(new Error('Network error during file upload'));
+        };
+
+        xhr.send(formData);
+      });
+    }
+
+    const res = await request('/uploads', {
+      method: 'POST',
+      body: formData
+    });
+    return res;
+  },
+
   // Authentication operations
   auth: {
     async login({ email, password }) {

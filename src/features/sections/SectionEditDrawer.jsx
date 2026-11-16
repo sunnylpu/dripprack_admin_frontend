@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Play, Eye, Film, Sparkles, Check, AlertCircle, ExternalLink, Image as ImageIcon } from 'lucide-react';
 import { Button } from '../../components/ui/Button.jsx';
 import { Input } from '../../components/ui/Input.jsx';
+import { MediaUploader } from '../../components/common/MediaUploader.jsx';
 import { sectionApi } from './sectionApi.js';
 import { categoryApi } from '../categories/categoryApi.js';
 import { productApi } from '../products/productApi.js';
@@ -270,92 +271,55 @@ export function SectionEditDrawer({ isOpen, onClose, section, onSaved }) {
           </div>
 
           {/* Media & Video Streaming Controls */}
-          <div className="space-y-4">
+          <div className="space-y-5">
             <h3 className="font-headline text-xs font-bold text-outline uppercase tracking-wider border-b border-outline-variant/20 pb-2 flex items-center justify-between">
-              <span>Media & Video Streaming</span>
+              <span>Media Assets & Video Streams</span>
               {formData.media.videoUrl && (
                 <span className="text-[10px] text-primary font-mono lowercase flex items-center gap-1">
-                  <Play className="w-3 h-3 fill-current" /> Live Video Stream Active
+                  <Play className="w-3 h-3 fill-current" /> Live Video Stream Attached
                 </span>
               )}
             </h3>
 
-            <div>
-              <label className="block text-xs font-mono text-outline mb-1">
-                Ambient Video URL (.mp4 stream)
-              </label>
-              <Input
-                value={formData.media.videoUrl}
-                onChange={(e) => setFormData({
+            {/* Ambient Background Video with File Upload + URL options */}
+            <MediaUploader
+              type="video"
+              label="Ambient Video Stream (.mp4, .webm, .mov)"
+              value={formData.media.videoUrl}
+              onChange={(url) => setFormData({
+                ...formData,
+                media: { ...formData.media, videoUrl: url }
+              })}
+              helperText="Upload an MP4/WebM video from your device or paste a direct CDN URL for looping background playback."
+              recommended="MP4/WebM format up to 100MB (16:9 or 21:9 cinematic ratio recommended)"
+            />
+
+            {/* Poster & Editorial Images with File Upload + URL options */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+              <MediaUploader
+                type="image"
+                label="Video Poster Fallback Image"
+                value={formData.media.posterUrl}
+                onChange={(url) => setFormData({
                   ...formData,
-                  media: { ...formData.media, videoUrl: e.target.value }
+                  media: { ...formData.media, posterUrl: url }
                 })}
-                placeholder="https://.../video.mp4"
+                helperText="Poster image displayed on mobile low-power mode or before video playback starts."
+                recommended="JPG/WebP up to 20MB"
               />
-              <span className="text-[11px] text-outline mt-1 block">
-                Direct HTTPS URL to high-definition MP4 stream (plays automatically muted in a seamless loop).
-              </span>
+
+              <MediaUploader
+                type="image"
+                label="Primary Editorial Look Image"
+                value={formData.media.imageUrl}
+                onChange={(url) => setFormData({
+                  ...formData,
+                  media: { ...formData.media, imageUrl: url }
+                })}
+                helperText="Primary high-resolution lookbook photo or banner graphic."
+                recommended="JPG/PNG/WebP up to 20MB"
+              />
             </div>
-
-            {/* Live Video Player Preview in Drawer */}
-            {formData.media.videoUrl && (
-              <div className="rounded-lg overflow-hidden border border-outline-variant/40 bg-black relative group">
-                <video
-                  key={formData.media.videoUrl}
-                  src={formData.media.videoUrl}
-                  poster={formData.media.posterUrl}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  className="w-full max-h-56 object-cover"
-                />
-                <div className="absolute bottom-2 left-2 px-2 py-1 rounded bg-black/70 text-white font-mono text-[10px] uppercase tracking-wider backdrop-blur-sm flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                  <span>Video Preview Stream</span>
-                </div>
-              </div>
-            )}
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-mono text-outline mb-1">
-                  Video Poster Fallback Image URL
-                </label>
-                <Input
-                  value={formData.media.posterUrl}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    media: { ...formData.media, posterUrl: e.target.value }
-                  })}
-                  placeholder="https://.../poster.jpg"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-mono text-outline mb-1">
-                  Primary Editorial Image URL
-                </label>
-                <Input
-                  value={formData.media.imageUrl}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    media: { ...formData.media, imageUrl: e.target.value }
-                  })}
-                  placeholder="https://.../image.jpg"
-                />
-              </div>
-            </div>
-
-            {formData.media.imageUrl && (
-              <div className="rounded-lg overflow-hidden border border-outline-variant/40 bg-surface-container max-w-xs">
-                <img
-                  src={formData.media.imageUrl}
-                  alt="Section preview"
-                  className="w-full h-36 object-cover"
-                />
-              </div>
-            )}
           </div>
 
           {/* Editorial Content */}

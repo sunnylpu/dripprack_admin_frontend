@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { validateProductForm } from '../productValidation.js';
 import { categoryApi } from '../../categories/categoryApi.js';
 import { formatCentsToDecimalInput } from '../../../lib/formatters.js';
+import { apiClient } from '../../../lib/apiClient.js';
 import { Button } from '../../../components/ui/Button.jsx';
 import { Input } from '../../../components/ui/Input.jsx';
 import {
@@ -11,7 +12,9 @@ import {
   Image as ImageIcon,
   AlertCircle,
   Layers,
-  Info
+  Info,
+  UploadCloud,
+  Loader2
 } from 'lucide-react';
 
 export function ProductFormDrawer({ isOpen, onClose, productToEdit, onSave }) {
@@ -31,6 +34,7 @@ export function ProductFormDrawer({ isOpen, onClose, productToEdit, onSave }) {
   const [lowStockThreshold, setLowStockThreshold] = useState(5);
   const [images, setImages] = useState([]);
   const [newImageUrl, setNewImageUrl] = useState('');
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   // Categories state
   const [activeCategories, setActiveCategories] = useState([]);
@@ -142,6 +146,33 @@ export function ProductFormDrawer({ isOpen, onClose, productToEdit, onSave }) {
 
   const handleRemoveImage = (indexToRemove) => {
     setImages((prev) => prev.filter((_, idx) => idx !== indexToRemove));
+  };
+
+  const handleUploadProductImage = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (images.length >= 10) {
+      setFieldErrors((prev) => ({ ...prev, images: 'Maximum of 10 image assets allowed per product' }));
+      return;
+    }
+
+    setIsUploadingImage(true);
+    setFieldErrors((prev) => ({ ...prev, images: undefined }));
+
+    try {
+      const data = await apiClient.upload(file);
+      if (data?.url) {
+        setImages((prev) => [...prev, data.url]);
+      } else {
+        throw new Error('Upload succeeded but no image URL was returned');
+      }
+    } catch (err) {
+      setFieldErrors((prev) => ({ ...prev, images: err.message || 'Image upload failed' }));
+    } finally {
+      setIsUploadingImage(false);
+      e.target.value = '';
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -444,8 +475,26 @@ export function ProductFormDrawer({ isOpen, onClose, productToEdit, onSave }) {
                 className="px-3 py-2 bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 rounded text-xs font-mono text-on-surface disabled:opacity-40 transition-colors flex items-center gap-1"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>Add</span>
+                <span>Add URL</span>
               </button>
+
+              <label className={`px-3 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded text-xs font-mono transition-colors flex items-center gap-1.5 cursor-pointer ${
+                images.length >= 10 || isUploadingImage ? 'opacity-40 pointer-events-none' : ''
+              }`}>
+                {isUploadingImage ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <UploadCloud className="w-3.5 h-3.5" />
+                )}
+                <span>{isUploadingImage ? 'Uploading...' : 'Upload'}</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  disabled={images.length >= 10 || isUploadingImage}
+                  onChange={handleUploadProductImage}
+                  className="hidden"
+                />
+              </label>
             </div>
             {fieldErrors.images && (
               <span className="font-mono text-xs text-error block">
